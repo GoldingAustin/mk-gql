@@ -1,6 +1,6 @@
 {
   "name": "@kibeo/mst-gql",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "private": false,
   "description": "Bindings for mobx-state-tree and GraphQL",
   "author": "Michel Weststrate",
@@ -20,7 +20,7 @@
   "react-native": "dist/mst-gql.module.js",
   "types": "./dist/mst-gql.d.ts",
   "bin": {
-    "mst-gql": "generator/mst-gql-scaffold.js"
+    "mst-gql": "./generator/mst-gql-scaffold.js"
   },
   "files": [
     "dist",
