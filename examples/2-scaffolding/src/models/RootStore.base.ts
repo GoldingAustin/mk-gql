@@ -1,9 +1,9 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
 import { ObservableMap } from "mobx"
 import { types } from "mobx-state-tree"
-import { MSTGQLStore, configureStoreMixin, QueryOptions, withTypedRefs } from "mst-gql"
+import { MSTGQLStore, configureStoreMixin, QueryOptions, withTypedRefs } from "@kibeo/mst-gql"
 
 import { PokemonModel, PokemonModelType } from "./PokemonModel"
 import { pokemonModelPrimitives, PokemonModelSelector } from "./PokemonModel.base"

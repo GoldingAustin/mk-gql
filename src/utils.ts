@@ -8,5 +8,7 @@ export function getFirstValue(data: any) {
 }
 
 export function typenameToCollectionName(typename: string) {
-  return typename.toLowerCase() + "s"
+  return typename[typename.length - 1].toLowerCase() === "s"
+    ? typename.toLowerCase()
+    : typename.toLowerCase() + "s"
 }

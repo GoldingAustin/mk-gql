@@ -1,10 +1,10 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
 
 import { IObservableArray } from "mobx"
 import { types } from "mobx-state-tree"
-import { MSTGQLRef, QueryBuilder, withTypedRefs } from "mst-gql"
+import { MSTGQLRef, QueryBuilder, withTypedRefs } from "@kibeo/mst-gql"
 import { ModelBase } from "./ModelBase"
 import { PokemonAttackModel, PokemonAttackModelType } from "./PokemonAttackModel"
 import { PokemonAttackModelSelector } from "./PokemonAttackModel.base"

@@ -34,4 +34,4 @@ export function selectFromSearchResult() {
   return new SearchResultModelSelector()
 }
 
-export const searchResultModelPrimitives = selectFromSearchResult().inputQuery
+export const searchResultModelPrimitives = selectFromSearchResult().inputQuery.items(searchItemModelPrimitives)

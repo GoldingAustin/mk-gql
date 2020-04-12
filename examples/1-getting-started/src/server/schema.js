@@ -14,7 +14,7 @@ const store = {
     },
     {
       id: 2,
-      text: "Install mst-gql",
+      text: "Install @kibeo/mst-gql",
       complete: false
     }
   ]

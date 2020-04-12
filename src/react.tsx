@@ -1,5 +1,3 @@
-import { DocumentNode } from "graphql"
-
 import { Query, FetchPolicy } from "./Query"
 import { MSTGQLStore } from "./MSTGQLStore"
 
@@ -10,7 +8,6 @@ export type QueryLike<STORE, DATA> =
   | ((store: STORE) => Query<DATA>)
   | Query<DATA>
   | string
-  | DocumentNode
 
 export function createStoreContext<STORE extends typeof MSTGQLStore.Type>(
   React: typeof ReactNamespace

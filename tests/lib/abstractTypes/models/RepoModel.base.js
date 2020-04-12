@@ -34,4 +34,4 @@ export function selectFromRepo() {
   return new RepoModelSelector()
 }
 
-export const repoModelPrimitives = selectFromRepo()
+export const repoModelPrimitives = selectFromRepo().owner(ownerModelPrimitives)

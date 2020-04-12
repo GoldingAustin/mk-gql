@@ -1,6 +1,6 @@
 ## About
 
-This example is a twttier clone that uses mst-gql.
+This example is a twttier clone that uses @kibeo/mst-gql.
 
 ## Usage
 

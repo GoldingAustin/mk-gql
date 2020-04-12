@@ -48,8 +48,8 @@ export const MSTGQLStore = types
         "Either gqlHttpClient or gqlWsClient (or both) should provided in the MSTGQLStore environment"
       )
 
-    function merge(data: unknown) {
-      return mergeHelper(self, data)
+    function merge(data: unknown, del: boolean) {
+      return mergeHelper(self, data, del)
     }
 
     function deflate(data: unknown) {
@@ -76,24 +76,27 @@ export const MSTGQLStore = types
     }
 
     function query<T>(
-      query: string | DocumentNode,
+      query: string,
       variables?: any,
-      options: QueryOptions = {}
+      options: QueryOptions = {},
+      del?: boolean
     ): Query<T> {
-      return new Query(self as StoreType, query, variables, options)
+      return new Query(self as StoreType, query, variables, options, !!del)
     }
 
     function mutate<T>(
-      mutation: string | DocumentNode,
+      mutation: string,
       variables?: any,
       optimisticUpdate?: () => void
     ): Query<T> {
+      console.log(optimisticUpdate, mutation.toLowerCase().includes("delete"))
       if (optimisticUpdate) {
         const recorder = recordPatches(self)
         optimisticUpdate()
         recorder.stop()
         const q = query<T>(mutation, variables, {
-          fetchPolicy: "network-only"
+          fetchPolicy: "network-only",
+          delete: mutation.toLowerCase().includes("delete")
         })
         q.currentPromise().catch(() => {
           recorder.undo()
@@ -101,14 +104,15 @@ export const MSTGQLStore = types
         return q
       } else {
         return query(mutation, variables, {
-          fetchPolicy: "network-only"
+          fetchPolicy: "network-only",
+          delete: mutation.toLowerCase().includes("delete")
         })
       }
     }
 
     // N.b: the T is ignored, but it does simplify code generation
     function subscribe<T = any>(
-      query: string | DocumentNode,
+      query: string,
       variables?: any,
       onData?: (item: T) => void
     ): () => void {

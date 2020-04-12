@@ -1,6 +1,6 @@
 // @ts-ignore
 import stringify from "fast-json-stable-stringify"
-import { DocumentNode, print } from "graphql"
+import { print } from "graphql"
 
 import { StoreType } from "./MSTGQLStore"
 import { action, observable } from "mobx"
@@ -21,6 +21,7 @@ export type FetchPolicy =
 export interface QueryOptions {
   fetchPolicy?: FetchPolicy
   noSsr?: boolean
+  delete?: boolean
 }
 
 const isServer: boolean = typeof window === "undefined"
@@ -37,9 +38,10 @@ export class Query<T = unknown> implements PromiseLike<T> {
 
   constructor(
     public store: StoreType,
-    query: string | DocumentNode,
+    query: string,
     public variables: any,
-    public options: QueryOptions = {}
+    public options: QueryOptions = {},
+    public del: boolean
   ) {
     this.query = typeof query === "string" ? query : print(query)
     this.queryKey = this.query + stringify(variables)
@@ -114,28 +116,41 @@ export class Query<T = unknown> implements PromiseLike<T> {
       promise = this.store.rawRequest(this.query, this.variables)
       this.store.__pushPromise(promise, this.queryKey)
     }
-    promise = promise.then((data: any) => {
-      // cache query and response
-      if (this.fetchPolicy !== "no-cache") {
-        this.store.__cacheResponse(this.queryKey, this.store.deflate(data))
-      }
-      return this.store.merge(data)
-    })
-    this.promise = promise
-    promise.then(
-      action((data: any) => {
-        this.loading = false
-        this.data = data
-      }),
-      action(error => {
+    promise = promise
+      .then((data: any) => {
+        // cache query and response
+        if (this.fetchPolicy !== "no-cache") {
+          this.store.__cacheResponse(this.queryKey, this.store.deflate(data))
+        }
+        return this.store.merge(data, this.del)
+      })
+      .catch(error => {
         this.loading = false
         this.error = error
       })
-    )
+    this.promise = promise
+    promise
+      .then(
+        action((data: any) => {
+          this.loading = false
+          this.data = data
+        }),
+        action(error => {
+          this.loading = false
+          this.error = error
+        })
+      )
+      .catch(error => {
+        this.loading = false
+        this.error = error
+      })
   }
 
   private useCachedResults() {
-    this.data = this.store.merge(this.store.__queryCache.get(this.queryKey))
+    this.data = this.store.merge(
+      this.store.__queryCache.get(this.queryKey),
+      this.del
+    )
     this.promise = Promise.resolve(this.data!)
   }
 
@@ -167,7 +182,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
         this.store.__runInStoreContext(() => onfulfilled(d))
       },
       e => {
-        this.store.__runInStoreContext(() => onrejected(e))
+        this.store.__runInStoreContext(() => onrejected && onrejected(e))
       }
     )
   }

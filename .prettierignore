@@ -7,7 +7,7 @@ dist/
 # test files
 __snapshots__
 
-# mst-gql generated files
+# @kibeo/mst-gql generated files
 **/models/index.*
 **/models/reactUtils.*
 **/models/*.base.*
