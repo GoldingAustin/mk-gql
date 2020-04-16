@@ -1,6 +1,6 @@
 {
   "name": "@kibeo/mst-gql",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "private": false,
   "description": "Bindings for mobx-state-tree and GraphQL",
   "author": "Michel Weststrate",
@@ -38,21 +38,21 @@
     }
   },
   "dependencies": {
-    "apollo": "^2.22.0",
+    "apollo": "^2.27.0",
     "arg": "^4.1.2",
     "cosmiconfig": "^5.2.1",
     "fast-json-stable-stringify": "^2.1.0",
-    "graphql": "^14.6.0",
+    "graphql": "^15.0.0",
     "graphql-request": "^1.8.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@babel/plugin-proposal-decorators": "^7.4.4",
-    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
-    "@babel/preset-env": "^7.4.5",
-    "@babel/preset-typescript": "^7.3.3",
-    "@babel/register": "^7.4.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-decorators": "^7.8.3",
+    "@babel/plugin-transform-modules-commonjs": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
+    "@babel/preset-typescript": "^7.9.0",
+    "@babel/register": "^7.9.0",
     "@types/jest": "^24.0.16",
     "@types/node": "^13.5.3",
     "@types/react": "^16.8.24",
@@ -64,15 +64,15 @@
     "jest": "^24.8.0",
     "microbundle": "^0.11.0",
     "mobx": "^5.15.4",
-    "mobx-react": "^6.1.4",
-    "mobx-state-tree": "^3.15.0",
-    "prettier": "^1.18.2",
+    "mobx-react": "^6.2.2",
+    "mobx-state-tree": "^3.16.0",
+    "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "relative-deps": "^0.2.0",
     "subscriptions-transport-ws": "^0.9.16",
-    "tslib": "^1.10.0",
+    "tslib": "^1.11.1",
     "typescript": "^3.7.5"
   },
   "peerDependencies": {
@@ -80,7 +80,7 @@
     "mobx-state-tree": "^3.0.0"
   },
   "resolutions": {
-    "graphql": "14.6.0"
+    "graphql": "15.0.0"
   },
   "directories": {
     "example": "examples",
