@@ -1,6 +1,6 @@
 {
   "name": "@kibeo/mst-gql",
-  "version": "0.8.9",
+  "version": "0.9.0",
   "private": false,
   "description": "Bindings for mobx-state-tree and GraphQL",
   "author": "Michel Weststrate",
