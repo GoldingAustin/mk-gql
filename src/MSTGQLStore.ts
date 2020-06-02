@@ -57,21 +57,30 @@ export const MSTGQLStore = types
     }
 
     function rawRequest(query: string, variables: any): Promise<any> {
-      if (gqlHttpClient) return gqlHttpClient.request(query, variables)
-      else {
-        return new Promise((resolve, reject) => {
-          gqlWsClient
-            .request({
-              query,
-              variables
-            })
-            .subscribe({
-              next(data) {
-                resolve(data.data)
-              },
-              error: reject
-            })
-        })
+      try {
+        if (gqlHttpClient && gqlHttpClient.request)
+          return gqlHttpClient.request(query, variables)
+        else {
+          return new Promise((resolve, reject) => {
+            if (gqlWsClient && gqlWsClient.request) {
+              gqlWsClient
+                .request({
+                  query,
+                  variables
+                })
+                .subscribe({
+                  next(data) {
+                    resolve(data.data)
+                  },
+                  error: reject
+                })
+            } else {
+              reject("Failed to fetch")
+            }
+          })
+        }
+      } catch (e) {
+        return Promise.reject(e)
       }
     }
 
@@ -89,7 +98,6 @@ export const MSTGQLStore = types
       variables?: any,
       optimisticUpdate?: () => void
     ): Query<T> {
-      console.log(optimisticUpdate, mutation.toLowerCase().includes("delete"))
       if (optimisticUpdate) {
         const recorder = recordPatches(self)
         optimisticUpdate()
