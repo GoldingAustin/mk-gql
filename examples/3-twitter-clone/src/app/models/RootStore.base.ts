@@ -5,10 +5,12 @@ import { ObservableMap } from "mobx"
 import { types } from "mobx-state-tree"
 import { MSTGQLStore, configureStoreMixin, QueryOptions, withTypedRefs } from "mst-gql"
 
-import { MessageModel, MessageModelType } from "./MessageModel"
-import { messageModelPrimitives, MessageModelSelector } from "./MessageModel.base"
 import { UserModel, UserModelType } from "./UserModel"
 import { userModelPrimitives, UserModelSelector } from "./UserModel.base"
+import { MessageModel, MessageModelType } from "./MessageModel"
+import { messageModelPrimitives, MessageModelSelector } from "./MessageModel.base"
+
+import { searchResultModelPrimitives, SearchResultModelSelector , SearchResultUnion } from "./"
 
 
 /* The TypeScript type that explicits the refs to other models in order to prevent a circular refs issue */
@@ -17,17 +19,38 @@ type Refs = {
   users: ObservableMap<string, UserModelType>
 }
 
+
+/**
+* Enums for the names of base graphql actions
+*/
+export enum RootStoreBaseQueries {
+querySearch="querySearch",
+queryMessages="queryMessages",
+queryMessage="queryMessage",
+queryMe="queryMe"
+}
+export enum RootStoreBaseMutations {
+mutateChangeName="mutateChangeName",
+mutateLike="mutateLike",
+mutatePostTweet="mutatePostTweet"
+}
+
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
 export const RootStoreBase = withTypedRefs<Refs>()(MSTGQLStore
   .named("RootStore")
-  .extend(configureStoreMixin([['Message', () => MessageModel], ['User', () => UserModel]], ['Message', 'User']))
+  .extend(configureStoreMixin([['User', () => UserModel], ['Message', () => MessageModel]], ['Message', 'User'], "js"))
   .props({
     messages: types.optional(types.map(types.late((): any => MessageModel)), {}),
     users: types.optional(types.map(types.late((): any => UserModel)), {})
   })
   .actions(self => ({
+    querySearch(variables: { searchText: string }, resultSelector: string | ((qb: SearchResultModelSelector) => SearchResultModelSelector) = searchResultModelPrimitives.toString(), options: QueryOptions = {}) {
+      return self.query<{ search: SearchResultUnion[]}>(`query search($searchText: String!) { search(searchText: $searchText) {
+        ${typeof resultSelector === "function" ? resultSelector(new SearchResultModelSelector()).toString() : resultSelector}
+      } }`, variables, options)
+    },
     queryMessages(variables: { offset?: string, count?: number, replyTo?: string }, resultSelector: string | ((qb: MessageModelSelector) => MessageModelSelector) = messageModelPrimitives.toString(), options: QueryOptions = {}) {
       return self.query<{ messages: MessageModelType[]}>(`query messages($offset: ID, $count: Int, $replyTo: ID) { messages(offset: $offset, count: $count, replyTo: $replyTo) {
         ${typeof resultSelector === "function" ? resultSelector(new MessageModelSelector()).toString() : resultSelector}
@@ -58,9 +81,9 @@ export const RootStoreBase = withTypedRefs<Refs>()(MSTGQLStore
         ${typeof resultSelector === "function" ? resultSelector(new MessageModelSelector()).toString() : resultSelector}
       } }`, variables, optimisticUpdate)
     },
-    subscribeNewMessages(variables?: {  }, resultSelector: string | ((qb: MessageModelSelector) => MessageModelSelector) = messageModelPrimitives.toString(), onData?: (item: any) => void) {
+    subscribeNewMessages(variables?: {  }, resultSelector: string | ((qb: MessageModelSelector) => MessageModelSelector) = messageModelPrimitives.toString(), onData?: (item: any) => void, onError?: (error: Error) => void) {
       return self.subscribe<{ newMessages: MessageModelType}>(`subscription newMessages { newMessages {
         ${typeof resultSelector === "function" ? resultSelector(new MessageModelSelector()).toString() : resultSelector}
-      } }`, variables, onData)
+      } }`, variables, onData, onError)
     },
   })))

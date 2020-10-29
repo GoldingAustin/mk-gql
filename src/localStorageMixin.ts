@@ -6,7 +6,9 @@ import {
   onSnapshot
 } from "mobx-state-tree"
 
-// TODO: support skipping parts of the store, with a key filter for example
+import { throttle } from "throttle-debounce"
+import pick from "lodash/pick"
+
 type LocalStorageMixinOptions = {
   storage?: {
     getItem(key: string): string | null | Promise<string | null>
@@ -14,6 +16,7 @@ type LocalStorageMixinOptions = {
   }
   throttle?: number // How often the snapshot is written to local storage
   storageKey?: string
+  filter?: string[]
 }
 export function localStorageMixin(options: LocalStorageMixinOptions = {}) {
   const storage = options.storage || window.localStorage
@@ -38,39 +41,15 @@ export function localStorageMixin(options: LocalStorageMixinOptions = {}) {
           self,
           onSnapshot(
             self,
-            throttle((data: any) => {
+            throttle(throttleInterval, (data: any) => {
+              if (options.filter) {
+                data = pick(data, options.filter)
+              }
               storage.setItem(storageKey, JSON.stringify(data))
-            }, throttleInterval)
+            })
           )
         )
       }
     }
   })
-}
-
-function throttle(fn: Function, delay: number) {
-  let lastCall = 0
-  let scheduled = false
-
-  return function(...args: any[]) {
-    // already scheduled
-    if (scheduled) return
-    const now = +new Date()
-    if (now - lastCall < delay) {
-      if (!scheduled) {
-        // within throttle period, but no next tick scheduled, schedule now
-        scheduled = true
-        setTimeout(() => {
-          // run and reset
-          lastCall = +new Date()
-          scheduled = false
-          fn.apply(null, args)
-        }, delay - (now - lastCall) + 10) // fire at the end of the current delay period
-      }
-    } else {
-      // outside throttle period, can execute immediately
-      lastCall = now
-      fn.apply(null, args)
-    }
-  }
 }

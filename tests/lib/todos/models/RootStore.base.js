@@ -7,12 +7,17 @@ import { TodoModel } from "./TodoModel"
 import { todoModelPrimitives, TodoModelSelector } from "./TodoModel.base"
 
 
+
+
+
+
+
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
 export const RootStoreBase = MSTGQLStore
   .named("RootStore")
-  .extend(configureStoreMixin([['Todo', () => TodoModel]], ['Todo']))
+  .extend(configureStoreMixin([['Todo', () => TodoModel]], ['Todo'], "js"))
   .props({
     todos: types.optional(types.map(types.late(() => TodoModel)), {})
   })

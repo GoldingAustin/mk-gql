@@ -29,8 +29,9 @@ export function mergeHelper(store: any, data: any, del: boolean) {
         instance = typeDef.create(snapshot)
         if (store.isRootType(__typename)) {
           // register in the store if a root
-          store[typenameToCollectionName(__typename)] &&
-            store[typenameToCollectionName(__typename)].set(id, instance)
+          //store[typenameToCollectionName(__typename)].set(id, instance)
+          store[store.getCollectionName(__typename)] &&
+            store[store.getCollectionName(__typename)].set(id, instance)
         }
         instance.__setStore(store)
       }

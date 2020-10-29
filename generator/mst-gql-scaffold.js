@@ -16,7 +16,9 @@ const definition = {
   "--modelsOnly": Boolean,
   "--force": Boolean,
   "--noReact": Boolean,
-  "--separate": Boolean
+  "--separate": Boolean,
+  "--dontRenameModels": Boolean,
+  "--header": String
 }
 
 function main() {
@@ -41,7 +43,9 @@ function main() {
     excludes,
     modelsOnly,
     forceAll,
-    noReact
+    noReact,
+    namingConvention,
+    header
   } = mergeConfigs(args, config)
   const separate = !!args["--separate"]
 
@@ -65,9 +69,10 @@ function main() {
   let json
   if (input.startsWith("http:") || input.startsWith("https:")) {
     const tmpFile = "tmp_schema.json"
-    child_process.execSync(
-      `${__dirname}/../node_modules/.bin/apollo schema:download --endpoint=${input} ${tmpFile}`
-    )
+    const command = `${__dirname}/../../.bin/apollo client:download-schema --endpoint=${input} ${tmpFile} ${
+      header ? `--header=${header}` : "" // the header options MUST be after the output 0_o
+    }`
+    child_process.execSync(command)
     json = JSON.parse(fs.readFileSync(tmpFile, "utf8"))
     fs.unlinkSync(tmpFile)
   } else if (input.endsWith(".json")) {
@@ -96,13 +101,14 @@ function main() {
 
   // console.log(JSON.stringify(json, null, 2))
   const files = generate(
-    json.__schema.types,
+    json.__schema,
     format,
     roots,
     excludes,
     new Date().toUTCString(),
     modelsOnly,
-    noReact
+    noReact,
+    namingConvention
   )
   writeFiles(outDir, files, format, forceAll, true, separate)
   logUnexpectedFiles(outDir, files)

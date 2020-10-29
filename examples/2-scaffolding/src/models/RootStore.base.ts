@@ -17,20 +17,31 @@ import { PokemonEvolutionRequirementModel, PokemonEvolutionRequirementModelType 
 import { pokemonEvolutionRequirementModelPrimitives, PokemonEvolutionRequirementModelSelector } from "./PokemonEvolutionRequirementModel.base"
 
 
+
 /* The TypeScript type that explicits the refs to other models in order to prevent a circular refs issue */
 type Refs = {
-  pokemons: ObservableMap<string, PokemonModelType>,
+  pokemon: ObservableMap<string, PokemonModelType>,
   attacks: ObservableMap<string, AttackModelType>
 }
+
+
+/**
+* Enums for the names of base graphql actions
+*/
+export enum RootStoreBaseQueries {
+queryPokemons="queryPokemons",
+queryPokemon="queryPokemon"
+}
+
 
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
 export const RootStoreBase = withTypedRefs<Refs>()(MSTGQLStore
   .named("RootStore")
-  .extend(configureStoreMixin([['Pokemon', () => PokemonModel], ['PokemonDimension', () => PokemonDimensionModel], ['PokemonAttack', () => PokemonAttackModel], ['Attack', () => AttackModel], ['PokemonEvolutionRequirement', () => PokemonEvolutionRequirementModel]], ['Pokemon', 'Attack']))
+  .extend(configureStoreMixin([['Pokemon', () => PokemonModel], ['PokemonDimension', () => PokemonDimensionModel], ['PokemonAttack', () => PokemonAttackModel], ['Attack', () => AttackModel], ['PokemonEvolutionRequirement', () => PokemonEvolutionRequirementModel]], ['Pokemon', 'Attack'], "js"))
   .props({
-    pokemons: types.optional(types.map(types.late((): any => PokemonModel)), {}),
+    pokemon: types.optional(types.map(types.late((): any => PokemonModel)), {}),
     attacks: types.optional(types.map(types.late((): any => AttackModel)), {})
   })
   .actions(self => ({

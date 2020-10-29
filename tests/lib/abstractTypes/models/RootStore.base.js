@@ -16,6 +16,12 @@ import { userModelPrimitives, UserModelSelector } from "./UserModel.base"
 import { OrganizationModel } from "./OrganizationModel"
 import { organizationModelPrimitives, OrganizationModelSelector } from "./OrganizationModel.base"
 
+import { searchItemModelPrimitives, SearchItemModelSelector  } from "./"
+
+
+
+
+
 
 /**
 * Store, managing, among others, all the objects received through graphQL

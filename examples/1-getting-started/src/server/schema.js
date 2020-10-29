@@ -23,10 +23,12 @@ const store = {
 const typeDefs = `
   type Query {
     todos: [Todo]
+    stringFromServer(string: String): String
   }
   type Mutation {
     toggleTodo(id: ID!): Todo
     createTodo(todo: CreateTodoInput!): Todo
+    returnBoolean(toReturn: Boolean!): Boolean
   }
   type Todo {
     id: ID,
@@ -45,6 +47,9 @@ const resolvers = {
   Query: {
     todos: (root, args, context) => {
       return store.todos
+    },
+    stringFromServer: (root, { string }, context) => {
+      return string || "No String Sent."
     }
   },
   Mutation: {
@@ -60,6 +65,9 @@ const resolvers = {
       }
       store.todos.push(todo)
       return todo
+    },
+    returnBoolean: (root, args, context) => {
+      return args.toReturn
     }
   }
 }

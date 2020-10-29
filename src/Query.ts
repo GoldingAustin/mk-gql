@@ -95,6 +95,12 @@ export class Query<T = unknown> implements PromiseLike<T> {
     }
   }
 
+  clearData = (): void => {
+    action(() => {
+      this.data = undefined
+    })
+  }
+
   refetch = (): Promise<T> => {
     return Promise.resolve().then(
       action(() => {
@@ -133,7 +139,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
       .then(
         action((data: any) => {
           this.loading = false
-          this.data = data
+          this.error = falsethis.data = data
         }),
         action(error => {
           this.loading = false
