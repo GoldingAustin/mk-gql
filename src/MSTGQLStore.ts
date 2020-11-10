@@ -1,6 +1,5 @@
 import camelcase from "camelcase"
-import { DocumentNode } from "graphql"
-import { getEnv, IAnyModelType, recordPatches, types } from "mobx-state-tree"
+import { getEnv, getParent, IAnyModelType, Instance, recordPatches, types } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { SubscriptionClient } from "subscriptions-transport-ws"
 import { deflateHelper } from "./deflateHelper"
@@ -17,18 +16,25 @@ export interface RequestHandler<T = any> {
 
 export const MSTGQLStore = types
   .model("MSTGQLStore", {
-    __queryCache: types.optional(types.map(types.frozen()), {})
+    __queryCache: types.optional(types.map(types.frozen()), {}),
+    isAttached: types.optional(types.boolean, false),
   })
   .volatile((self): {
     ssr: boolean
     __promises: Map<string, Promise<unknown>>
     __afterInit: boolean
   } => {
+    let parent;
+    try {
+      parent = getParent(self);
+    } catch (e) {
+      //
+    }
     const {
       ssr = false
     }: {
       ssr: boolean
-    } = getEnv(self)
+    } = parent ? getEnv(parent) : getEnv(self)
     return {
       ssr,
       __promises: new Map(),
@@ -37,18 +43,7 @@ export const MSTGQLStore = types
   })
   .actions(self => {
     Promise.resolve().then(() => (self as any).__onAfterInit())
-
-    const {
-      gqlHttpClient, // TODO: rename to requestHandler
-      gqlWsClient // TODO: rename to streamHandler
-    }: {
-      gqlHttpClient: RequestHandler
-      gqlWsClient: SubscriptionClient
-    } = getEnv(self)
-    if (!gqlHttpClient && !gqlWsClient)
-      throw new Error(
-        "Either gqlHttpClient or gqlWsClient (or both) should provided in the MSTGQLStore environment"
-      )
+    Promise.resolve().then(() => (self as any).afterAttach())
 
     function merge(data: unknown, del: boolean) {
       return mergeHelper(self, data, del)
@@ -59,6 +54,14 @@ export const MSTGQLStore = types
     }
 
     function rawRequest(query: string, variables: any): Promise<any> {
+      const parent = getParent(self);
+      const {
+        gqlHttpClient, // TODO: rename to requestHandler
+        gqlWsClient // TODO: rename to streamHandler
+      }: {
+        gqlHttpClient: RequestHandler
+        gqlWsClient: SubscriptionClient
+      } = parent ? getEnv(parent) : getEnv(self)
       try {
         if (gqlHttpClient && gqlHttpClient.request)
           return gqlHttpClient.request(query, variables)
@@ -129,6 +132,14 @@ export const MSTGQLStore = types
         throw error
       }
     ): () => void {
+      const parent = getParent(self);
+      const {
+        gqlHttpClient, // TODO: rename to requestHandler
+        gqlWsClient // TODO: rename to streamHandler
+      }: {
+        gqlHttpClient: RequestHandler
+        gqlWsClient: SubscriptionClient
+      } = parent ? getEnv(parent) : getEnv(self)
       if (!gqlWsClient) throw new Error("No WS client available")
       const sub = gqlWsClient
         .request({
@@ -168,6 +179,9 @@ export const MSTGQLStore = types
       },
       __cacheResponse(key: string, response: any) {
         self.__queryCache.set(key, response)
+      },
+      afterAttach() {
+        self.isAttached = true
       },
       __onAfterInit() {
         self.__afterInit = true
@@ -221,4 +235,4 @@ export function configureStoreMixin(
   })
 }
 
-export type StoreType = typeof MSTGQLStore.Type
+export interface StoreType extends Instance<typeof MSTGQLStore> {}

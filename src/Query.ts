@@ -28,7 +28,7 @@ const isServer: boolean = typeof window === "undefined"
 
 export class Query<T = unknown> implements PromiseLike<T> {
   @observable loading = false
-  @observable.ref data: T | undefined = undefined
+  @observable.deep data: T | undefined = undefined
   @observable error: any = undefined
 
   public query: string
@@ -138,10 +138,11 @@ export class Query<T = unknown> implements PromiseLike<T> {
     promise
       .then(
         action((data: any) => {
-          this.loading = false
-          this.error = falsethis.data = data
+          this.loading = false;
+          this.error = false;
+          this.data = observable(data);
         }),
-        action(error => {
+        action((error: any) => {
           this.loading = false
           this.error = error
         })

@@ -228,7 +228,7 @@ import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
   format === "ts"
-    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends Instance<typeof ${name}Model.Type> {}\n`
+    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends Instance<typeof ${name}Model> {}\n`
     : ""
 }
 ${
@@ -603,7 +603,7 @@ import { RootStoreBase } from "./RootStore.base${importPostFix}"
 
 ${
   format == "ts"
-    ? "export interface RootStoreType extends Instance<typeof RootStore.Type> {}\n\n"
+    ? "export interface RootStoreType extends Instance<typeof RootStore> {}\n\n"
     : ""
 }\
 export const RootStore = RootStoreBase
@@ -851,7 +851,7 @@ ${enumContent}
 ${optPrefix("\n    // ", sanitizeComment(description))}
     ${methodPrefix}${toFirstUpper(name)}(variables${
           (args.length === 0 || isNullable) && format === "ts" ? "?" : ""
-        }${tsVariablesType}, resultSelector${
+        }${tsVariablesType}, ${returnType.kind !== "OBJECT" ? '_: any' : `resultSelector${
           ifTS(
             `: string | ((qb: ${
               returnType.kind !== "OBJECT"
@@ -867,7 +867,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
           returnType.kind !== "OBJECT"
             ? '""'
             : `${toFirstLower(returnType.name)}ModelPrimitives.toString()`
-        } ${extraFormalArgs}) {
+        }`} ${extraFormalArgs}) {
       return self.${methodPrefix}${tsType}(\`${gqlPrefix} ${name}${formalArgs} { ${name}${actualArgs} ${
           returnType.kind === "OBJECT"
             ? `{
@@ -972,9 +972,9 @@ ${
 
 export const StoreContext = createStoreContext${
       format === "ts" ? `<RootStoreType>` : ""
-    }(React)
+    }(React${format === "ts" ? ' as any' : ''})
 
-export const useQuery = createUseQueryHook(StoreContext, React)
+export const useQuery = createUseQueryHook(StoreContext, React${format === "ts" ? ' as any' : ''})
 `
 
     generateFile("reactUtils", contents, true)

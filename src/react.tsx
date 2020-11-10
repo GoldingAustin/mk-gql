@@ -1,5 +1,7 @@
 import { Query, FetchPolicy } from "./Query"
 import { MSTGQLStore } from "./MSTGQLStore"
+import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
+import { Instance } from "mobx-state-tree"
 
 // import react namespace only; statement gets removed after transpiling
 declare var ReactNamespace: typeof import("react")
@@ -9,13 +11,13 @@ export type QueryLike<STORE, DATA> =
   | Query<DATA>
   | string
 
-export function createStoreContext<STORE extends typeof MSTGQLStore.Type>(
+export function createStoreContext<STORE extends Instance<typeof MSTGQLStore>>(
   React: typeof ReactNamespace
 ) {
   return React.createContext<STORE>(null as any)
 }
 
-export async function getDataFromTree<STORE extends typeof MSTGQLStore.Type>(
+export async function getDataFromTree<STORE extends Instance<typeof MSTGQLStore>>(
   tree: React.ReactElement<any>,
   client: STORE,
   renderFunction: (
@@ -31,7 +33,7 @@ export async function getDataFromTree<STORE extends typeof MSTGQLStore.Type>(
   }
 }
 
-function normalizeQuery<STORE extends typeof MSTGQLStore.Type, DATA>(
+function normalizeQuery<STORE extends Instance<typeof MSTGQLStore>, DATA>(
   store: STORE,
   query: QueryLike<STORE, DATA>,
   {
@@ -70,7 +72,7 @@ export type UseQueryHook<STORE> = <DATA>(
   options?: UseQueryHookOptions<STORE>
 ) => UseQueryHookResult<STORE, DATA>
 
-export function createUseQueryHook<STORE extends typeof MSTGQLStore.Type>(
+export function createUseQueryHook<STORE extends Instance<typeof MSTGQLStore>>(
   context: React.Context<STORE>,
   React: typeof ReactNamespace
 ): UseQueryHook<STORE> {
@@ -95,7 +97,7 @@ export function createUseQueryHook<STORE extends typeof MSTGQLStore.Type>(
     )
 
     // if new query or variables are passed in, replace the query!
-    React.useEffect(() => {
+    useDeepCompareEffectNoCheck(() => {
       if (!queryIn || typeof queryIn === "function") return // ignore changes to initializer func
       setQueryHelper(queryIn)
     }, [queryIn, opts.fetchPolicy, JSON.stringify(opts.variables)]) // TODO: use a decent deep equal
