@@ -1,6 +1,6 @@
 {
   "name": "@kibeo/mst-gql",
-  "version": "1.4.1",
+  "version": "1.6.0-beta.2",
   "private": false,
   "description": "Bindings for mobx-state-tree and GraphQL",
   "author": "Michel Weststrate",
@@ -44,9 +44,9 @@
     "cosmiconfig": "^7.0.0",
     "fast-json-stable-stringify": "^2.1.0",
     "graphql": "^14.7.0",
-    "graphql-request": "^2.1.0-next.3",
+    "graphql-request": "^3.4.0",
+    "graphql-tag": "^2.11.0",
     "lodash": "^4.17.20",
-    "lodash.get": "^4.4.2",
     "pluralize": "^8.0.0",
     "throttle-debounce": "^2.3.0"
   },
@@ -66,14 +66,12 @@
     "@types/react-dom": "^16.9.8",
     "@types/throttle-debounce": "^2.1.0",
     "escape-string-regexp": "^4.0.0",
-    "graphql-query-tree": "^0.3.0",
-    "graphql-tag": "^2.11.0",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
-    "microbundle": "^0.12.3",
-    "mobx": "^6.0.1",
-    "mobx-react-lite": "^3.0.1",
-    "mobx-state-tree": "^4.0.1-rc.1",
+    "microbundle": "^0.13.0",
+    "mobx": "^6.1.8",
+    "mobx-react-lite": "^3.2.0",
+    "mobx-state-tree": "^5.0.1",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.0.2",
     "react": "^17.0.1",
@@ -84,8 +82,8 @@
     "use-deep-compare-effect": "^1.4.0"
   },
   "peerDependencies": {
-    "mobx": "^4.0.0 || ^5.0.0",
-    "mobx-state-tree": "^3.0.0"
+    "mobx": "^5.0.0 || ^6.0.0",
+    "mobx-state-tree": "^5.0.0"
   },
   "resolutions": {
     "graphql": "15.0.0"
