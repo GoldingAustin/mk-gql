@@ -122,6 +122,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
       promise = this.store.rawRequest(this.query, this.variables)
       this.store.__pushPromise(promise, this.queryKey)
     }
+    if (this.store.middleware) this.store.middleware(promise)
     promise = promise
       .then((data: any) => {
         // cache query and response
@@ -130,7 +131,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
         }
         return this.store.merge(data, this.del)
       })
-      .catch(error => {
+      .catch((error) => {
         this.loading = false
         this.error = error
       })
@@ -138,16 +139,16 @@ export class Query<T = unknown> implements PromiseLike<T> {
     promise
       .then(
         action((data: any) => {
-          this.loading = false;
-          this.error = false;
-          this.data = observable(data);
+          this.loading = false
+          this.error = false
+          this.data = observable(data)
         }),
         action((error: any) => {
           this.loading = false
           this.error = error
         })
       )
-      .catch(error => {
+      .catch((error) => {
         this.loading = false
         this.error = error
       })
@@ -185,10 +186,10 @@ export class Query<T = unknown> implements PromiseLike<T> {
   ): PromiseLike<TResult1 | TResult2>
   then(onfulfilled: any, onrejected: any) {
     return this.promise.then(
-      d => {
+      (d) => {
         this.store.__runInStoreContext(() => onfulfilled(d))
       },
-      e => {
+      (e) => {
         this.store.__runInStoreContext(() => onrejected && onrejected(e))
       }
     )

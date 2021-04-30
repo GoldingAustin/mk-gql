@@ -5,8 +5,6 @@ import {
   resolveIdentifier,
   IReferenceType
 } from "mobx-state-tree"
-import { observable } from "mobx"
-
 import { StoreType } from "./MSTGQLStore"
 
 /*
@@ -18,11 +16,16 @@ export function MSTGQLRef<T extends IAnyModelType>(
 ): IReferenceType<T> {
   return types.reference(targetType, {
     get(id: string, parent: any) {
-      const node = resolveIdentifier(
-        targetType,
-        parent.store || getParent<any>(parent).store,
-        id
-      )
+      const store = parent.store || getParent<any>(parent).store
+      const node =
+        resolveIdentifier(
+          targetType,
+          store,
+          id
+          // @ts-ignore
+        ) ??
+        (store[store.getCollectionName(targetType._subType.name)] &&
+          store[store.getCollectionName(targetType._subType.name)].get(id))
       if (!node) {
         throw new Error(
           `Failed to resolve reference ${id} to ${targetType.name}`
@@ -36,7 +39,7 @@ export function MSTGQLRef<T extends IAnyModelType>(
   })
 }
 
-export const MSTGQLObject = types.model("MSTGQLObject").extend(self => {
+export const MSTGQLObject = types.model("MSTGQLObject").extend((self) => {
   let store: StoreType
 
   function getStore(): StoreType {

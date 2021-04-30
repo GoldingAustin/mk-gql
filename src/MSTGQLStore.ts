@@ -1,5 +1,12 @@
 import camelcase from "camelcase"
-import { getEnv, getParent, IAnyModelType, Instance, recordPatches, types } from "mobx-state-tree"
+import {
+  getEnv,
+  getParent,
+  IAnyModelType,
+  Instance,
+  recordPatches,
+  types
+} from "mobx-state-tree"
 import pluralize from "pluralize"
 import { SubscriptionClient } from "subscriptions-transport-ws"
 import { deflateHelper } from "./deflateHelper"
@@ -17,16 +24,16 @@ export interface RequestHandler<T = any> {
 export const MSTGQLStore = types
   .model("MSTGQLStore", {
     __queryCache: types.optional(types.map(types.frozen()), {}),
-    isAttached: types.optional(types.boolean, false),
+    isAttached: types.optional(types.boolean, false)
   })
   .volatile((self): {
     ssr: boolean
     __promises: Map<string, Promise<unknown>>
     __afterInit: boolean
   } => {
-    let parent;
+    let parent
     try {
-      parent = getParent(self);
+      parent = getParent(self)
     } catch (e) {
       //
     }
@@ -34,16 +41,31 @@ export const MSTGQLStore = types
       ssr = false
     }: {
       ssr: boolean
-    } = parent ? getEnv(parent) : getEnv(self)
+    } = parent && getEnv(parent).ssr ? getEnv(parent) : getEnv(self)
     return {
       ssr,
       __promises: new Map(),
       __afterInit: false
     }
   })
-  .actions(self => {
+  .actions((self) => {
     Promise.resolve().then(() => (self as any).__onAfterInit())
     Promise.resolve().then(() => (self as any).afterAttach())
+    function middleware(item: any) {
+      let parent
+      try {
+        parent = getParent(self)
+      } catch (e) {
+        //
+      }
+      const middleware: <T>(arg: T) => T | undefined =
+        parent && getEnv(parent)?.middleware
+          ? getEnv(parent).middleware
+          : getEnv(self)?.middleware
+          ? getEnv(self).middleware
+          : undefined
+      middleware?.(item)
+    }
 
     function merge(data: unknown, del: boolean) {
       return mergeHelper(self, data, del)
@@ -54,14 +76,22 @@ export const MSTGQLStore = types
     }
 
     function rawRequest(query: string, variables: any): Promise<any> {
-      const parent = getParent(self);
+      let parent
+      try {
+        parent = getParent(self)
+      } catch (e) {
+        //
+      }
       const {
         gqlHttpClient, // TODO: rename to requestHandler
         gqlWsClient // TODO: rename to streamHandler
       }: {
         gqlHttpClient: RequestHandler
         gqlWsClient: SubscriptionClient
-      } = parent ? getEnv(parent) : getEnv(self)
+      } =
+        parent && (getEnv(parent).gqlHttpClient || getEnv(parent).gqlWsClient)
+          ? getEnv(parent)
+          : getEnv(self)
       try {
         if (gqlHttpClient && gqlHttpClient.request)
           return gqlHttpClient.request(query, variables)
@@ -128,18 +158,26 @@ export const MSTGQLStore = types
       query: string,
       variables?: any,
       onData?: (item: T) => void,
-      onError: (error: Error) => void = error => {
+      onError: (error: Error) => void = (error) => {
         throw error
       }
     ): () => void {
-      const parent = getParent(self);
+      let parent
+      try {
+        parent = getParent(self)
+      } catch (e) {
+        //
+      }
       const {
         gqlHttpClient, // TODO: rename to requestHandler
         gqlWsClient // TODO: rename to streamHandler
       }: {
         gqlHttpClient: RequestHandler
         gqlWsClient: SubscriptionClient
-      } = parent ? getEnv(parent) : getEnv(self)
+      } =
+        parent && (getEnv(parent).gqlHttpClient || getEnv(parent).gqlWsClient)
+          ? getEnv(parent)
+          : getEnv(self)
       if (!gqlWsClient) throw new Error("No WS client available")
       const sub = gqlWsClient
         .request({
@@ -168,6 +206,7 @@ export const MSTGQLStore = types
       mutate,
       query,
       subscribe,
+      middleware,
       rawRequest,
       __pushPromise(promise: Promise<{}>, queryKey: string) {
         self.__promises.set(queryKey, promise)

@@ -1,6 +1,6 @@
 import { Query, FetchPolicy } from "./Query"
 import { MSTGQLStore } from "./MSTGQLStore"
-import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
+import React from "react"
 import { Instance } from "mobx-state-tree"
 
 // import react namespace only; statement gets removed after transpiling
@@ -17,7 +17,9 @@ export function createStoreContext<STORE extends Instance<typeof MSTGQLStore>>(
   return React.createContext<STORE>(null as any)
 }
 
-export async function getDataFromTree<STORE extends Instance<typeof MSTGQLStore>>(
+export async function getDataFromTree<
+  STORE extends Instance<typeof MSTGQLStore>
+>(
   tree: React.ReactElement<any>,
   client: STORE,
   renderFunction: (
@@ -76,7 +78,7 @@ export function createUseQueryHook<STORE extends Instance<typeof MSTGQLStore>>(
   context: React.Context<STORE>,
   React: typeof ReactNamespace
 ): UseQueryHook<STORE> {
-  return function<DATA>(
+  return function <DATA>(
     queryIn: undefined | QueryLike<STORE, DATA> = undefined,
     opts: UseQueryHookOptions<STORE> = {}
   ) {
@@ -97,7 +99,7 @@ export function createUseQueryHook<STORE extends Instance<typeof MSTGQLStore>>(
     )
 
     // if new query or variables are passed in, replace the query!
-    useDeepCompareEffectNoCheck(() => {
+    React.useEffect(() => {
       if (!queryIn || typeof queryIn === "function") return // ignore changes to initializer func
       setQueryHelper(queryIn)
     }, [queryIn, opts.fetchPolicy, JSON.stringify(opts.variables)]) // TODO: use a decent deep equal

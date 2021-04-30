@@ -6,8 +6,8 @@ import {
   onSnapshot
 } from "mobx-state-tree"
 
-import { throttle } from "throttle-debounce"
 import pick from "lodash/pick"
+import throttle from "lodash/throttle"
 
 type LocalStorageMixinOptions = {
   storage?: {
@@ -41,12 +41,12 @@ export function localStorageMixin(options: LocalStorageMixinOptions = {}) {
           self,
           onSnapshot(
             self,
-            throttle(throttleInterval, (data: any) => {
+            throttle((data: any) => {
               if (options.filter) {
                 data = pick(data, options.filter)
               }
               storage.setItem(storageKey, JSON.stringify(data))
-            })
+            }, throttleInterval)
           )
         )
       }
