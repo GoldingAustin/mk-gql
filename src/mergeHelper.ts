@@ -8,7 +8,7 @@ export function mergeHelper(store: any, data: any, del: boolean) {
   function merge(data: any, del: boolean): any {
     if (!data || typeof data !== "object") return data
     if (Array.isArray(data)) {
-      let items = []
+      let items: any[] = []
       for (const d of data) {
         try {
           items.push(merge(d, del))

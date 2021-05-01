@@ -524,25 +524,24 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
   ) {
     if (modelsOnly) return ""
 
-    let output = `export let ${name}ModelSelector;\n`
-    output += `${name}ModelSelector = {\n...QueryBuilder.prototype,\n`
-    output += `  get typename() { return this.__attr(\`__typename\`) },\n`
+    let output = `export class ${name}ModelSelector extends QueryBuilder {\n`
     output += primitiveFields
-      .map((p) => `  get ${p}() { return this.__attr(\`${p}\`) },`)
+      .map((p) => `  get ${p}() { return this.__attr(\`${p}\`) }`)
       .join("\n")
     output += primitiveFields.length > 0 ? "\n" : ""
     output += nonPrimitiveFields
       .map(([field, fieldName]) => {
         const selector = `${fieldName}ModelSelector`
-        let p = ` ${field}(builder`
+        let p = `  ${field}(builder`
         p += ifTS(
-          `?: string | typeof ${selector} | ((selector: typeof ${selector}) => typeof ${selector})`
+          `?: string | ${selector} | ((selector: ${selector}) => ${selector})`
         )
-        p += `) { return this.__child(\`${field}\`, ${selector}, builder) },`
+        p += `) { return this.__child(\`${field}\`, ${selector}, builder) }`
         return p
       })
       .join("\n")
     output += nonPrimitiveFields.length > 0 ? "\n" : ""
+
     if (interfaceOrUnionType) {
       output += interfaceOrUnionType.ofTypes
         .map((subType) => {
@@ -557,15 +556,14 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         .join("\n")
       output += interfaceOrUnionType.ofTypes.length > 0 ? "\n" : ""
     }
-    output += "};\n"
-    output += `${name}ModelSelector.prototype = Object.create(QueryBuilder.prototype);\n${name}ModelSelector.prototype.constructor = ${name}ModelSelector;\n`
+    output += "}\n"
 
     output += `export function selectFrom${name}() {\n`
-    output += `  return ${name}ModelSelector\n`
+    output += `  return new ${name}ModelSelector()\n`
     output += "}\n\n"
 
     const flowername = toFirstLower(name)
-    const modelPrimitives = `export let ${flowername}ModelPrimitives = selectFrom${name}().typename`
+    const modelPrimitives = `export const ${flowername}ModelPrimitives = selectFrom${name}()`
 
     if (interfaceOrUnionType && interfaceOrUnionType.kind === "UNION") {
       // for unions, select all primitive fields of member types
@@ -583,9 +581,9 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     } else {
       // for interaces and objects, select the defined fields
       output += modelPrimitives
-      output += primitiveFields.map((p) => `.${p}`).join("")
-      output += nonPrimitiveFields
-        .map((p) => `.${p[0]}(${toFirstLower(p[1])}ModelPrimitives)`)
+      output += primitiveFields
+        .filter((p) => p !== "id") // id will be automatically inserted by the query generator
+        .map((p) => `.${p}`)
         .join("")
     }
 

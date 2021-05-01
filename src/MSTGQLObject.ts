@@ -24,7 +24,9 @@ export function MSTGQLRef<T extends IAnyModelType>(
           id
           // @ts-ignore
         ) ??
+        // @ts-ignore
         (store[store.getCollectionName(targetType._subType.name)] &&
+          // @ts-ignore
           store[store.getCollectionName(targetType._subType.name)].get(id))
       if (!node) {
         throw new Error(
