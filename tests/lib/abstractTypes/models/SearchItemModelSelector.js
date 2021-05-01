@@ -1,11 +1,9 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 
-import { QueryBuilder } from "mst-gql"
-import { BookModelType } from "./BookModel"
-import { BookModelSelector, bookModelPrimitives } from "./BookModel.base"
-import { MovieModelType } from "./MovieModel"
-import { MovieModelSelector, movieModelPrimitives } from "./MovieModel.base"
+import { QueryBuilder } from "@kibeo/mst-gql"
+import { BookModelSelector, BookModelType, bookModelPrimitives } from "./BookModel"
+import { MovieModelSelector, MovieModelType, movieModelPrimitives } from "./MovieModel"
 
 export class SearchItemModelSelector extends QueryBuilder {
   movie(builder) { return this.__inlineFragment(`Movie`, MovieModelSelector, builder) }

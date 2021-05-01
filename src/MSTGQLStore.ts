@@ -1,181 +1,143 @@
 import camelcase from "camelcase"
-import { DocumentNode } from "graphql"
-import { getEnv, IAnyModelType, recordPatches, types } from "mobx-state-tree"
+import { Model, prop, objectMap, model } from "mobx-keystone"
 import pluralize from "pluralize"
-import { SubscriptionClient } from "subscriptions-transport-ws"
 import { deflateHelper } from "./deflateHelper"
 
 import { mergeHelper } from "./mergeHelper"
 import { Query, QueryOptions } from "./Query"
-import { getFirstValue } from "./utils"
 
 export interface RequestHandler<T = any> {
   request(query: string, variables: any): Promise<T>
 }
 
-// TODO: also provide an interface for stream handler
-
-export const MSTGQLStore = types
-  .model("MSTGQLStore", {
-    __queryCache: types.optional(types.map(types.frozen()), {})
-  })
-  .volatile((self): {
-    ssr: boolean
-    __promises: Map<string, Promise<unknown>>
-    __afterInit: boolean
-    gqlHttpClient: RequestHandler
-    gqlWsClient: SubscriptionClient
-  } => {
-    const {
-      ssr = false,
-      gqlHttpClient,
-      gqlWsClient
-    }: {
-      ssr: boolean
-      gqlHttpClient: RequestHandler
-      gqlWsClient: SubscriptionClient
-    } = getEnv(self)
-    return {
-      ssr,
-      gqlHttpClient,
-      gqlWsClient,
-      __promises: new Map(),
-      __afterInit: false
-    }
-  })
-  .actions((self) => {
-    Promise.resolve().then(() => (self as any).__onAfterInit())
-
-    function merge(data: unknown) {
-      return mergeHelper(self, data)
+// @ts-ignore
+export const createMKGQLStore = (
+  knownTypes: [string, () => typeof Model][],
+  rootTypes: string[],
+  namingConvention?: string
+) => {
+  @model("MKGQLStore")
+  class MKGQLStore extends Model({
+    __queryCache: prop(() => objectMap<string>()),
+    isAttached: prop(false)
+  }) {
+    ssr: boolean = false
+    __promises: Map<string, Promise<unknown>> = new Map()
+    __afterInit: boolean = false
+    gqlHttpClient: RequestHandler | undefined
+    middleWare: any
+    kt = new Map()
+    rt = new Set(rootTypes)
+    constructor(props, gqlHttpClient?: RequestHandler, middleWare?: any) {
+      super(props)
+      this.gqlHttpClient = gqlHttpClient
+      this.middleWare = middleWare
     }
 
-    function deflate(data: unknown) {
-      return deflateHelper(self, data)
+    middleware(item: any) {
+      let parent
+      this.middleWare?.(item)
     }
 
-    function rawRequest(query: string, variables: any): Promise<any> {
-      if (!self.gqlHttpClient && !self.gqlWsClient)
-        throw new Error(
-          "Either gqlHttpClient or gqlWsClient (or both) should provided in the MSTGQLStore environment"
-        )
-      if (self.gqlHttpClient)
-        return self.gqlHttpClient.request(query, variables)
-      else {
-        return new Promise((resolve, reject) => {
-          self.gqlWsClient
-            .request({
-              query,
-              variables
-            })
-            .subscribe({
-              next(data) {
-                resolve(data.data)
-              },
-              error: reject
-            })
-        })
+    resolveReference(type: any, id: any) {
+      this[type]?.get(id)
+    }
+
+    merge(data: unknown, del: boolean) {
+      return mergeHelper(this, data, del)
+    }
+
+    deflate(data: unknown) {
+      return deflateHelper(this, data)
+    }
+
+    rawRequest(query: string, variables: any): Promise<any> | undefined {
+      try {
+        if (this.gqlHttpClient && this.gqlHttpClient.request)
+          return this.gqlHttpClient.request(query, variables)
+      } catch (e) {
+        return Promise.reject(e)
       }
     }
 
-    function query<T>(
-      query: string | DocumentNode,
+    query<T>(
+      query: string,
       variables?: any,
-      options: QueryOptions = {}
+      options: QueryOptions = {},
+      del?: boolean
     ): Query<T> {
-      return new Query(self as StoreType, query, variables, options)
+      // @ts-ignore
+      return new Query(this, query, variables, options, !!del)
     }
 
-    function mutate<T>(
-      mutation: string | DocumentNode,
+    mutate<T>(
+      mutation: string,
       variables?: any,
       optimisticUpdate?: () => void
     ): Query<T> {
-      if (optimisticUpdate) {
-        const recorder = recordPatches(self)
-        optimisticUpdate()
-        recorder.stop()
-        const q = query<T>(mutation, variables, {
-          fetchPolicy: "network-only"
-        })
-        q.currentPromise().catch(() => {
-          recorder.undo()
-        })
-        return q
-      } else {
-        return query(mutation, variables, {
-          fetchPolicy: "network-only"
-        })
-      }
+      return this.query(mutation, variables, {
+        fetchPolicy: "network-only",
+        delete: mutation.toLowerCase().includes("delete")
+      })
     }
 
-    // N.b: the T is ignored, but it does simplify code generation
-    function subscribe<T = any>(
-      query: string | DocumentNode,
-      variables?: any,
-      onData?: (item: T) => void,
-      onError: (error: Error) => void = (error) => {
-        throw error
-      }
-    ): () => void {
-      if (!self.gqlWsClient) throw new Error("No WS client available")
-      const sub = self.gqlWsClient
-        .request({
-          query,
-          variables
-        })
-        .subscribe({
-          next(data) {
-            if (data.errors) {
-              return onError(new Error(JSON.stringify(data.errors)))
-            }
-            ;(self as any).__runInStoreContext(() => {
-              const res = (self as any).merge(getFirstValue(data.data))
-              if (onData) onData(res)
-              return res
-            })
-          }
-        })
-      return () => sub.unsubscribe()
-    }
-
-    function setHttpClient(value: RequestHandler) {
-      self.gqlHttpClient = value
-    }
-
-    function setWsClient(value: SubscriptionClient) {
-      self.gqlWsClient = value
-    }
-
-    // exposed actions
-    return {
-      merge,
-      deflate,
-      mutate,
-      query,
-      subscribe,
-      rawRequest,
-      setHttpClient,
-      setWsClient,
-      __pushPromise(promise: Promise<{}>, queryKey: string) {
-        self.__promises.set(queryKey, promise)
-        const onSettled = () => self.__promises.delete(queryKey)
+    __pushPromise(promise: Promise<{}> | undefined, queryKey: string) {
+      if (promise) {
+        this.__promises.set(queryKey, promise)
+        const onSettled = () => this.__promises.delete(queryKey)
         promise.then(onSettled, onSettled)
-      },
-      __runInStoreContext<T>(fn: () => T) {
-        return fn()
-      },
-      __cacheResponse(key: string, response: any) {
-        self.__queryCache.set(key, response)
-      },
-      __onAfterInit() {
-        self.__afterInit = true
       }
     }
-  })
+
+    __runInStoreContext<T>(fn: () => T) {
+      return fn()
+    }
+
+    __cacheResponse(key: string, response: any) {
+      this.__queryCache.set(key, response)
+    }
+
+    __onAfterInit() {
+      this.__afterInit = true
+    }
+
+    isKnownType(typename: string): boolean {
+      return this.kt.has(typename)
+    }
+    isRootType(typename: string): boolean {
+      return this.rt.has(typename)
+    }
+    getTypeDef(typename: string): typeof Model {
+      return this.kt.get(typename)!
+    }
+    getCollectionName(typename: string): string {
+      if (namingConvention == "js") {
+        // Pluralize only last word (pluralize may fail with words that are
+        // not valid English words as is the case with LongCamelCaseTypeNames)
+        const newName = camelcase(typename)
+        const parts = newName.split(/(?=[A-Z])/)
+        parts[parts.length - 1] = pluralize(parts[parts.length - 1])
+        return parts.join("")
+      }
+      return typename.toLowerCase() + "s"
+    }
+    onInit() {
+      knownTypes.forEach(([key, typeFn]) => {
+        const type = typeFn()
+        if (!type)
+          throw new Error(
+            `The type provided for '${key}' is empty. Probably this is a module loading issue`
+          )
+        this.kt.set(key, type)
+      })
+    }
+  }
+
+  return MKGQLStore
+}
 
 export function configureStoreMixin(
-  knownTypes: [string, () => IAnyModelType][],
+  knownTypes: [string, () => typeof Model][],
   rootTypes: string[],
   namingConvention?: string
 ) {
@@ -202,7 +164,7 @@ export function configureStoreMixin(
       isRootType(typename: string): boolean {
         return rt.has(typename)
       },
-      getTypeDef(typename: string): IAnyModelType {
+      getTypeDef(typename: string): typeof Model {
         return kt.get(typename)!
       },
       getCollectionName(typename: string): string {
@@ -220,4 +182,4 @@ export function configureStoreMixin(
   })
 }
 
-export type StoreType = typeof MSTGQLStore.Type
+export type MKGQLStoreType = ReturnType<typeof createMKGQLStore>

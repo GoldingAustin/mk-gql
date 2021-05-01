@@ -1,8 +1,8 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 
 import { types } from "mobx-state-tree"
-import { QueryBuilder } from "mst-gql"
+import { QueryBuilder  } from "@kibeo/mst-gql"
 import { ModelBase } from "./ModelBase"
 
 
@@ -10,18 +10,11 @@ import { ModelBase } from "./ModelBase"
  * MovieBase
  * auto generated base class for the model MovieModel.
  */
-export const MovieModelBase = ModelBase
-  .named('Movie')
-  .props({
-    __typename: types.optional(types.literal("Movie"), "Movie"),
-    description: types.union(types.undefined, types.string),
-    director: types.union(types.undefined, types.string),
+export class MovieModelBase extends Model({
+    __typename: prop("Movie"),
+        description: prop<undefined |types.string>,
+    director: prop<undefined |types.string>,
   })
-  .views(self => ({
-    get store() {
-      return self.__getStore()
-    }
-  }))
 
 export class MovieModelSelector extends QueryBuilder {
   get description() { return this.__attr(`description`) }

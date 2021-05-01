@@ -51,7 +51,7 @@ function generate(
   let currentType = "<none>"
   let origRootTypes = []
 
-  const header = `/* This is a mst-gql generated file, don't modify it manually */
+  const header = `/* This is a @kibeo/mk-gql generated file, don't modify it manually */
 /* eslint-disable */${format === "ts" ? "\n/* tslint:disable */" : ""}`
   const importPostFix = format === "mjs" ? ".mjs" : ""
 
@@ -71,7 +71,7 @@ function generate(
 
   function generateModelBase() {
     const entryFile = `\
-import { MSTGQLObject } from "mst-gql"
+import { MSTGQLObject } from "@kibeo/mk-gql"
 
 export const ModelBase = MSTGQLObject
 `
@@ -185,7 +185,7 @@ export enum ${name} {
 
     const contents = `\
 ${header}
-import { types } from "mobx-state-tree"
+import { types, prop, tProp, Model } from "mobx-keystone"
 
 ${tsType}
 
@@ -226,12 +226,14 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
     const { name, origName } = type
     const flowerName = toFirstLower(name)
 
-    const entryFile = `${ifTS('import { Instance } from "mobx-state-tree"\n')}\
+    const entryFile = `${ifTS(
+      'import { ExtendedModel } from "mobx-keystone"\n'
+    )}\
 import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
   format === "ts"
-    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends Instance<typeof ${name}Model.Type> {}\n`
+    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends Instance<typeof ${name}Model> {}\n`
     : ""
 }
 ${
@@ -244,8 +246,7 @@ export { selectFrom${name}, ${flowerName}ModelPrimitives, ${name}ModelSelector }
 /**
  * ${name}Model${optPrefix("\n *\n * ", sanitizeComment(type.description))}
  */
-export const ${name}Model = ${name}ModelBase
-${exampleAction}
+export class ${name}Model extends ExtendedModel(${name}ModelBase, {}) {}
 `
 
     if (format === "ts") {
@@ -263,10 +264,10 @@ ${
     ? `import { IObservableArray } from "mobx"\n`
     : ""
 }\
-import { types } from "mobx-state-tree"
-import {${refs.length > 0 ? " MSTGQLRef," : ""} QueryBuilder${
+import { types, prop, tProp, Model } from "mobx-keystone"
+import {${refs.length > 0 ? " MSTGQLRef," : ""} QueryBuilder ${
       useTypedRefs ? ", withTypedRefs" : ""
-    } } from "mst-gql"
+    } } from "@kibeo/mk-gql"
 import { ModelBase } from "./ModelBase${importPostFix}"
 ${printRelativeImports(imports)}
 ${
@@ -291,19 +292,10 @@ ${refs
       sanitizeComment(type.description)
     )}
  */
-export const ${name}ModelBase = ${
-      useTypedRefs ? `withTypedRefs<Refs>()(` : ""
-    }ModelBase
-  .named('${name}')
-  .props({
-    __typename: types.optional(types.literal("${origName}"), "${origName}"),
-${modelProperties}
-  })
-  .views(self => ({
-    get store() {
-      return self.__getStore${format === "ts" ? `<RootStoreType>` : ""}()
-    }
-  }))${useTypedRefs ? ")" : ""}
+export class ${name}ModelBase extends Model({
+    __typename: tProp("${origName}"),
+    ${modelProperties}
+  }) {}
 
 ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
 `
@@ -333,12 +325,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         /** Base file imports */
         const toBeImported = [`${t.name}ModelSelector`]
         if (isUnion) toBeImported.push(`${toFirstLower(t.name)}ModelPrimitives`)
-        addImportToMap(
-          imports,
-          fileName,
-          `${t.name}Model.base`,
-          ...toBeImported
-        )
+        addImportToMap(imports, fileName, `${t.name}Model`, ...toBeImported)
 
         /** 1) Imports model type from the model */
         addImportToMap(
@@ -351,7 +338,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
 
     // Start building out the ModelSelector file
     let contents = header + "\n\n"
-    contents += 'import { QueryBuilder } from "mst-gql"\n'
+    contents += 'import { QueryBuilder } from "@kibeo/mk-gql"\n'
     contents += printRelativeImports(imports)
 
     /** 2) Add the correct type for a TS union to the exports of the ModelSelector file */
@@ -405,7 +392,16 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       let r = ""
       if (field.description)
         r += `    /** ${sanitizeComment(field.description)} */\n`
-      r += `    ${field.name}: ${handleFieldType(field.name, field.type)},`
+      r += `    ${field.name}:${
+        ["identifier", "identifierNumber"].includes(
+          primitiveToMstType(field.name, field.type.name, typeOverride)
+        )
+          ? `prop<${handleFieldType(field.name, field.type)}>()`
+          : `prop<${handleFieldType(
+              field.name,
+              field.type
+            )} | undefined | null>()`
+      },`
       return r
     }
 
@@ -418,11 +414,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       function result(thing, isRequired = false) {
         const canBeUndef = !isRequired && !isNested
         const canBeNull = !isRequired && isNullable
-        return canBeNull || canBeUndef
-          ? `types.union(${canBeUndef ? "types.undefined, " : ""}${
-              canBeNull ? "types.null, " : ""
-            }${thing})`
-          : thing
+        return `${thing}`
       }
       switch (fieldType.kind) {
         case "SCALAR":
@@ -434,13 +426,13 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
           )
           const requiredTypes = ["identifier", "identifierNumber"]
           const isRequired = requiredTypes.includes(primitiveType)
-          return result(`types.${primitiveType}`, isRequired)
+          return result(`${primitiveType}`, isRequired)
         case "OBJECT":
           return result(handleObjectFieldType(fieldName, fieldType, isNested))
         case "LIST":
-          return result(
-            `types.array(${handleFieldType(fieldName, fieldType.ofType, true)})`
-          )
+          return `${result(
+            handleFieldType(fieldName, fieldType.ofType, true)
+          )}[]`
         case "ENUM":
           primitiveFields.push(fieldName)
           const enumType =
@@ -471,8 +463,8 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       nonPrimitiveFields.push([fieldName, fieldType.name])
       const isSelf = fieldType.name === currentType
 
-      // this type is not going to be handled by mst-gql, store as frozen
-      if (!knownTypes.includes(fieldType.name)) return `types.frozen()`
+      // this type is not going to be handled by @kibeo/mk-gql, store as frozen
+      if (!knownTypes.includes(fieldType.name)) return `frozen()`
       // import the type
       const modelType = fieldType.name + "Model"
       addImport(modelType, modelType)
@@ -480,20 +472,19 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         addImport(modelType, `${fieldType.name}${modelTypePostfix}`)
       }
       if (!modelsOnly) {
-        addImport(`${modelType}.base`, `${modelType}Selector`)
+        addImport(`${modelType}`, `${modelType}Selector`)
+        addImport(`${modelType}`, `${toFirstLower(modelType)}Primitives`)
       }
 
       // always using late prevents potential circular dependency issues between files
-      const realType = `types.late(()${format === "ts" ? ": any" : ""} => ${
-        fieldType.name
-      }Model)`
+      const realType = `${fieldType.name}Model`
 
       // this object is not a root type, so assume composition relationship
       if (!isSelf && !rootTypes.includes(fieldType.name)) return realType
 
       // the target is a root type, store a reference
       refs.push([fieldName, fieldType.name, isNested])
-      return `MSTGQLRef(${realType})`
+      return `${realType}`
     }
 
     function handleInterfaceOrUnionFieldType(fieldName, fieldType) {
@@ -514,11 +505,9 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         }
         const isSelf = fieldType.name === currentType
         // always using late prevents potential circular dependency issues between files
-        return `types.late(()${
-          isSelf && format === "ts" ? ": any" : ""
-        } => ${subTypeClassName})`
+        return `prop<${subTypeClassName}>()`
       })
-      return `types.union(${mstUnionArgs.join(", ")})`
+      return `prop<${mstUnionArgs.join(" | ")}>`
     }
   }
 
@@ -599,12 +588,14 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
   function generateRootStore() {
     toExport.push("RootStore")
 
-    const entryFile = `${ifTS('import { Instance } from "mobx-state-tree"\n')}\
+    const entryFile = `${ifTS(
+      'import { ExtendedModel } from "mobx-keystone"\n'
+    )}\
 import { RootStoreBase } from "./RootStore.base${importPostFix}"
 
 ${
   format == "ts"
-    ? "export interface RootStoreType extends Instance<typeof RootStore.Type> {}\n\n"
+    ? "export interface RootStoreType extends Instance<typeof RootStore> {}\n\n"
     : ""
 }\
 export const RootStore = RootStoreBase
@@ -614,22 +605,16 @@ ${exampleAction}
     const modelFile = `\
 ${header}
 ${ifTS(`import { ObservableMap } from "mobx"\n`)}\
-import { types } from "mobx-state-tree"
+import { types, prop, tProp, Model, objectMap } from "mobx-keystone"
 import { MSTGQLStore, configureStoreMixin${
       format === "ts" ? ", QueryOptions, withTypedRefs" : ""
-    } } from "mst-gql"
+    } } from "@kibeo/mk-gql"
 ${objectTypes
   .map(
     (t) =>
-      `\nimport { ${t}Model${ifTS(
-        `, ${t}${modelTypePostfix}`
-      )} } from "./${t}Model${importPostFix}"${
-        modelsOnly
-          ? ""
-          : `\nimport { ${toFirstLower(
-              t
-            )}ModelPrimitives, ${t}ModelSelector } from "./${t}Model.base${importPostFix}"`
-      }`
+      `\nimport { ${t}Model${ifTS(`, ${t}${modelTypePostfix}`)}, ${toFirstLower(
+        t
+      )}ModelPrimitives, ${t}ModelSelector  } from "./${t}Model${importPostFix}"`
   )
   .join("")}
 ${
@@ -683,32 +668,25 @@ ${ifTS(generateGraphQLActionsEnum("Mutation", "Mutations", "mutate"))}
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
-export const RootStoreBase = ${ifTS("withTypedRefs<Refs>()(")}${
-      modelsOnly ? "types.model()" : "MSTGQLStore"
-    }
-  .named("RootStore")
-  .extend(configureStoreMixin([${origObjectTypes
-    .map(
-      (s) => `['${s}', () => ${transformTypeName(s, namingConvention)}Model]`
-    )
-    .join(", ")}], [${origRootTypes.map((s) => `'${s}'`).join(", ")}]${
+export class RootStoreBase extends createMKGQLStore([${origObjectTypes
+      .map(
+        (s) => `['${s}', () => ${transformTypeName(s, namingConvention)}Model]`
+      )
+      .join(", ")}], [${origRootTypes.map((s) => `'${s}'`).join(", ")}]${
       namingConvention == "asis" ? "" : `, "${namingConvention}"`
-    }))
-  .props({
+    })({
 ${rootTypes
   .map(
     (t) =>
       `    ${transformRootName(
         t,
         namingConvention
-      )}: types.optional(types.map(types.late(()${ifTS(
-        ": any"
-      )} => ${t}Model)), {})`
-  ) // optional should not be needed here..
+      )}: prop(() => objectMap<${t}Model>())`
+  )
   .join(",\n")}
-  })
-  .actions(self => ({${generateQueries()}
-  }))${ifTS(")")}
+  }) {
+  ${generateQueries()}
+  }
 `
     generateFile("RootStore", entryFile)
     generateFile("RootStore.base", modelFile, true)
@@ -774,8 +752,10 @@ ${enumContent}
         findObjectByName(schema.queryType ? schema.queryType.name : "Query"),
         "query",
         "query",
-        format === "ts" ? ", options: QueryOptions = {}" : ", options = {}",
-        ", options"
+        format === "ts"
+          ? ", options: QueryOptions = {}, clean?: boolean"
+          : ", options = {}, clean",
+        ", options, !!clean"
       ) +
       generateQueryHelper(
         findObjectByName(
@@ -862,27 +842,40 @@ ${enumContent}
           format === "ts"
             ? `: { ${args.map((arg) => `${printTsType(arg)}`).join(", ")} }`
             : ""
+        const isNullable = args.every((arg) => arg.type.kind !== "NON_NULL")
         return `\
 ${optPrefix("\n    // ", sanitizeComment(description))}
     ${methodPrefix}${toFirstUpper(name)}(variables${
-          args.length === 0 && format === "ts" ? "?" : ""
-        }${tsVariablesType}${
-          isScalar
-            ? ""
-            : `, resultSelector${
+          (args.length === 0 || isNullable) && format === "ts" ? "?" : ""
+        }${tsVariablesType}, ${
+          returnType.kind !== "OBJECT"
+            ? "_?: any"
+            : `resultSelector${
                 ifTS(
-                  `: string | ((qb: ${returnType.name}ModelSelector) => ${returnType.name}ModelSelector)`
+                  `: string | ((qb: ${
+                    returnType.kind !== "OBJECT"
+                      ? printTsPrimitiveType(returnType.name.toLowerCase())
+                      : `typeof ${returnType.name}ModelSelector`
+                  }) => ${
+                    returnType.kind !== "OBJECT"
+                      ? printTsPrimitiveType(returnType.name.toLowerCase())
+                      : `typeof ${returnType.name}ModelSelector`
+                  })`
                 ) /* TODO or GQL object */
-              } = ${toFirstLower(returnType.name)}ModelPrimitives.toString()`
-        }${extraFormalArgs}) {
-      return self.${methodPrefix}${tsType}(\`${gqlPrefix} ${name}${formalArgs} { ${name}${actualArgs} ${
-          isScalar
-            ? ""
-            : `{
-        \${typeof resultSelector === "function" ? resultSelector(new ${returnType.name}ModelSelector()).toString() : resultSelector}
-      } `
-        }}\`, variables${extraActualArgs})
-    },`
+              } = ${
+                returnType.kind !== "OBJECT"
+                  ? '""'
+                  : `${toFirstLower(returnType.name)}ModelPrimitives.toString()`
+              }`
+        } ${extraFormalArgs}) {
+      return this.${methodPrefix}${tsType}(\`${gqlPrefix} ${name}${formalArgs} { ${name}${actualArgs} ${
+          returnType.kind === "OBJECT"
+            ? `{
+        \${typeof resultSelector === "function" ? resultSelector(${returnType.name}ModelSelector).toString() : resultSelector}
+      }`
+            : ""
+        } }\`, variables${extraActualArgs})
+    }`
       })
       .join("")
   }
@@ -945,7 +938,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
 
     return `${name}${
       canBeUndefined || fromUndefineableList ? "?" : ""
-    }: ${typeValue}`
+    }: ${typeValue} ${canBeUndefined ? "| null" : ""}`
   }
 
   function printTsPrimitiveType(primitiveType) {
@@ -956,7 +949,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
     if (primitiveTypeOverride) return primitiveTypeOverride
 
     const res = {
-      ID: "string",
+      ID: "string | number",
       Int: "number",
       String: "string",
       Float: "number",
@@ -977,7 +970,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
     const contents = `\
 ${header}
 
-import { createStoreContext, createUseQueryHook } from "mst-gql"
+import { createStoreContext, createUseQueryHook } from "@kibeo/mk-gql"
 import * as React from "react"
 ${
   format === "ts"
@@ -985,11 +978,15 @@ ${
     : ""
 }
 
+${format === "ts" ? "// @ts-ignore" : ""}
 export const StoreContext = createStoreContext${
       format === "ts" ? `<RootStoreType>` : ""
-    }(React)
+    }(React${format === "ts" ? " as any" : ""})
 
-export const useQuery = createUseQueryHook(StoreContext, React)
+${format === "ts" ? "// @ts-ignore" : ""}
+export const useQuery = createUseQueryHook(StoreContext, React${
+      format === "ts" ? " as any" : ""
+    })
 `
 
     generateFile("reactUtils", contents, true)
@@ -1046,14 +1043,14 @@ ${toExport.map((f) => `export * from "./${f}${importPostFix}"`).join("\n")}
     if (mstType !== null) return mstType
 
     const res = {
-      ID: "identifier",
-      Int: "integer",
+      ID: "string | number",
+      Int: "number",
       String: "string",
       Float: "number",
       Boolean: "boolean"
     }
     // if (!res[type]) throw new Error("Unknown primitive type: " + type)
-    return res[type] || "frozen()"
+    return res[type] || "any"
   }
 
   return files

@@ -28,7 +28,7 @@
     "mobx": "^5.13.0",
     "mobx-react": "^6.1.1",
     "mobx-state-tree": "^3.14.1",
-    "mst-gql": "latest",
+    "@kibeo/mst-gql": "latest",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },
@@ -39,6 +39,6 @@
     "typescript": "^3.4.5"
   },
   "relativeDependencies": {
-    "mst-gql": "../../"
+    "@kibeo/mst-gql": "../../"
   }
 }

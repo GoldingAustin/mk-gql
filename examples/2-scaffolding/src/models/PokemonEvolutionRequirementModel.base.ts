@@ -1,9 +1,9 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
 
 import { types } from "mobx-state-tree"
-import { QueryBuilder } from "mst-gql"
+import { QueryBuilder } from "@kibeo/mst-gql"
 import { ModelBase } from "./ModelBase"
 import { RootStoreType } from "./index"
 

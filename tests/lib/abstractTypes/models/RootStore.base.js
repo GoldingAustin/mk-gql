@@ -1,20 +1,14 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 import { types } from "mobx-state-tree"
-import { MSTGQLStore, configureStoreMixin } from "mst-gql"
+import { MSTGQLStore, configureStoreMixin } from "@kibeo/mst-gql"
 
-import { SearchResultModel } from "./SearchResultModel"
-import { searchResultModelPrimitives, SearchResultModelSelector } from "./SearchResultModel.base"
-import { MovieModel } from "./MovieModel"
-import { movieModelPrimitives, MovieModelSelector } from "./MovieModel.base"
-import { BookModel } from "./BookModel"
-import { bookModelPrimitives, BookModelSelector } from "./BookModel.base"
-import { RepoModel } from "./RepoModel"
-import { repoModelPrimitives, RepoModelSelector } from "./RepoModel.base"
-import { UserModel } from "./UserModel"
-import { userModelPrimitives, UserModelSelector } from "./UserModel.base"
-import { OrganizationModel } from "./OrganizationModel"
-import { organizationModelPrimitives, OrganizationModelSelector } from "./OrganizationModel.base"
+import { SearchResultModel, searchResultModelPrimitives, SearchResultModelSelector  } from "./SearchResultModel"
+import { MovieModel, movieModelPrimitives, MovieModelSelector  } from "./MovieModel"
+import { BookModel, bookModelPrimitives, BookModelSelector  } from "./BookModel"
+import { RepoModel, repoModelPrimitives, RepoModelSelector  } from "./RepoModel"
+import { UserModel, userModelPrimitives, UserModelSelector  } from "./UserModel"
+import { OrganizationModel, organizationModelPrimitives, OrganizationModelSelector  } from "./OrganizationModel"
 
 import { searchItemModelPrimitives, SearchItemModelSelector  } from "./"
 import { ownerModelPrimitives, OwnerModelSelector  } from "./"
@@ -35,19 +29,19 @@ export const RootStoreBase = MSTGQLStore
     repos: types.optional(types.map(types.late(() => RepoModel)), {})
   })
   .actions(self => ({
-    querySearch(variables, resultSelector = searchResultModelPrimitives.toString(), options = {}) {
+    querySearch(variables, resultSelector = searchResultModelPrimitives.toString() , options = {}, clean) {
       return self.query(`query search($text: String!) { search(text: $text) {
-        ${typeof resultSelector === "function" ? resultSelector(new SearchResultModelSelector()).toString() : resultSelector}
-      } }`, variables, options)
+        ${typeof resultSelector === "function" ? resultSelector(SearchResultModelSelector).toString() : resultSelector}
+      } }`, variables, options, !!clean)
     },
-    queryGetAllRepos(variables, resultSelector = repoModelPrimitives.toString(), options = {}) {
+    queryGetAllRepos(variables, resultSelector = repoModelPrimitives.toString() , options = {}, clean) {
       return self.query(`query getAllRepos { getAllRepos {
-        ${typeof resultSelector === "function" ? resultSelector(new RepoModelSelector()).toString() : resultSelector}
-      } }`, variables, options)
+        ${typeof resultSelector === "function" ? resultSelector(RepoModelSelector).toString() : resultSelector}
+      } }`, variables, options, !!clean)
     },
-    mutateAddRepo(variables, resultSelector = repoModelPrimitives.toString(), optimisticUpdate) {
+    mutateAddRepo(variables, resultSelector = repoModelPrimitives.toString() , optimisticUpdate) {
       return self.mutate(`mutation addRepo($name: String!, $ownerName: String!, $avatar: String, $logo: String) { addRepo(name: $name, ownerName: $ownerName, avatar: $avatar, logo: $logo) {
-        ${typeof resultSelector === "function" ? resultSelector(new RepoModelSelector()).toString() : resultSelector}
+        ${typeof resultSelector === "function" ? resultSelector(RepoModelSelector).toString() : resultSelector}
       } }`, variables, optimisticUpdate)
     },
   }))

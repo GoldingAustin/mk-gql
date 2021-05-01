@@ -1,8 +1,11 @@
 {
-  "name": "mst-gql",
+  "name": "@kibeo/mk-gql",
   "version": "0.14.1",
-  "description": "Bindings for mobx-state-tree and GraphQL",
-  "author": "Michel Weststrate",
+  "description": "Bindings for mobx-keystone and GraphQL",
+  "authors": [
+    "Michel Weststrate",
+    "G"
+  ],
   "keywords": [
     "mobx-state-tree",
     "graphql"
@@ -23,9 +26,7 @@
   "jsnext:main": "dist/mst-gql.module.js",
   "react-native": "dist/mst-gql.module.js",
   "types": "./dist/mst-gql.d.ts",
-  "bin": {
-    "mst-gql": "./generator/mst-gql-scaffold.js"
-  },
+  "bin": "./generator/mst-gql-scaffold.js",
   "files": [
     "dist",
     "generator"
@@ -33,7 +34,7 @@
   "scripts": {
     "test": "jest test && cd examples/2-scaffolding && yarn && yarn start",
     "watch": "jest test --watch",
-    "build": "microbundle --no-compress --external mobx,mobx-react,mobx-state-tree,graphql-tag,graphql,react,react-dom,graphql-request",
+    "build": "microbundle --no-compress --external mobx,mobx-react-lite,mobx-keystone,graphql-tag,graphql,graphql-request",
     "format": "prettier --write '**/*'"
   },
   "husky": {
@@ -50,8 +51,7 @@
     "graphql": "^14.6.0",
     "graphql-request": "^1.8.2",
     "lodash": "^4.17.20",
-    "pluralize": "^8.0.0",
-    "throttle-debounce": "^2.3.0"
+    "pluralize": "^8.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
@@ -72,20 +72,20 @@
     "graphql-tag": "^2.11.0",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
-    "microbundle": "^0.12.3",
+    "microbundle": "^0.13.0",
     "mobx": "^6.1.0",
-    "mobx-react": "^7.0.5",
-    "mobx-state-tree": "^5.0.1",
+    "mobx-keystone": "^0.57.1",
+    "mobx-react-lite": "^3.2.0",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.0.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "relative-deps": "^1.0.4",
     "subscriptions-transport-ws": "^0.9.18",
     "typescript": "^4.0.3"
   },
   "peerDependencies": {
     "mobx": "^4.0.0 || ^5.0.0",
-    "mobx-state-tree": "^3.0.0"
+    "mobx-keystone": "^0.55.0"
   }
 }

@@ -1,11 +1,9 @@
-/* This is a mst-gql generated file, don't modify it manually */
+/* This is a @kibeo/mst-gql generated file, don't modify it manually */
 /* eslint-disable */
 
-import { QueryBuilder } from "mst-gql"
-import { OrganizationModelType } from "./OrganizationModel"
-import { OrganizationModelSelector } from "./OrganizationModel.base"
-import { UserModelType } from "./UserModel"
-import { UserModelSelector } from "./UserModel.base"
+import { QueryBuilder } from "@kibeo/mst-gql"
+import { OrganizationModelSelector, OrganizationModelType } from "./OrganizationModel"
+import { UserModelSelector, UserModelType } from "./UserModel"
 
 export class OwnerModelSelector extends QueryBuilder {
   get id() { return this.__attr(`id`) }

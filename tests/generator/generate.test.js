@@ -12,9 +12,8 @@ const hasFileContentExact = (file, snippet) => file[1].indexOf(snippet) != -1
 const hasFileContentRegexp = (file, snippet) => file[1].match(snippet)
 
 test("basic scaffolding to work", () => {
-  expect(
-    scaffold(
-      `
+  const sca = scaffold(
+    `
 type User {
   id: ID
   name: String!
@@ -24,12 +23,13 @@ type Query {
   me: User
 }
 `,
-      {
-        roots: ["User"],
-        namingConvention: "asis"
-      }
-    )
-  ).toMatchSnapshot()
+    {
+      roots: ["User"],
+      namingConvention: "asis"
+    }
+  )
+  console.log(sca)
+  expect(sca).toMatchSnapshot()
 })
 
 test("basic scaffolding with js naming convention, specific query type to work", () => {
