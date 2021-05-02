@@ -3,7 +3,7 @@
   "scripts": {
     "postinstall": "../../node_modules/.bin/relative-deps",
     "dev": "nodemon --watch server server/index.js",
-    "scaffold": "../../generator/mst-gql-scaffold.js",
+    "scaffold": "../../generator/mk-gql-scaffold.js",
     "build": "next build",
     "start": "cross-env NODE_ENV=production node server/index.js"
   },

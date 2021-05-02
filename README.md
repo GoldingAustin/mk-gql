@@ -1,14 +1,14 @@
-# mst-gql
+### A fork of mst-gql to mobx-keystone
 
-Bindings for mobx-state-tree and GraphQL
+Credit to the mst-gql project and [Michel Weststrate](https://twitter.com/mweststrate)
 
-Discuss this project on [spectrum](https://spectrum.chat/mst-gql)
+# mk-gql
 
-[![CircleCI](https://circleci.com/gh/mobxjs/mst-gql/tree/master.svg?style=svg)](https://circleci.com/gh/mobxjs/mst-gql/tree/master)
+Bindings for mobx-keystone and GraphQL
 
 # 🚀 Installation 🚀
 
-Installation: `yarn add mobx mobx-state-tree mobx-react react react-dom mst-gql graphql-request`
+Installation: `yarn add mobx mobx-keystone @kibeo/mk-gql graphql-request`
 
 If you want to use graphql tags, also install: `yarn add graphql graphql-tag`
 
@@ -16,9 +16,9 @@ If you want to use graphql tags, also install: `yarn add graphql graphql-tag`
 
 Watch the introduction talk @ react-europe 2019: [Data models all the way](https://www.youtube.com/watch?v=Sq2M00vghqY&list=PLCC436JpVnK3kcTnPyhcs7QnHK2PKl33D&index=12&t=0s) by [Michel Weststrate](https://twitter.com/mweststrate)
 
-Both GraphQL and mobx-state-tree are model-first driven approaches, so they have a naturally matching architecture. If you are tired of having your data shapes defined in GraphQL, MobX-state-tree and possible TypeScript as well, this project might be a great help!
+Both GraphQL and mobx-keystone are model-first driven approaches, so they have a naturally matching architecture. If you are tired of having your data shapes defined in GraphQL, MobX-state-tree and possible TypeScript as well, this project might be a great help!
 
-Furthermore, this project closes the gap between GraphQL and mobx-state-tree as state management solutions. GraphQL is very transport oriented, while MST is great for client side state management. GraphQL clients like apollo do support some form of client-side state, but that is still quite cumbersome compared to the full model driven power unlocked by MST, where local actions, reactive views, and MobX optimized rendering model be used.
+Furthermore, this project closes the gap between GraphQL and mobx-keystone as state management solutions. GraphQL is very transport oriented, while MST is great for client side state management. GraphQL clients like apollo do support some form of client-side state, but that is still quite cumbersome compared to the full model driven power unlocked by MST, where local actions, reactive views, and MobX optimized rendering model be used.
 
 Benefits:
 
@@ -34,7 +34,7 @@ Benefits:
 
 # 👟 Overview & getting started 👟
 
-The `mst-gql` libraries consists of two parts:
+The `@kibeo/mk-gql` libraries consists of two parts:
 
 1. Scaffolding
 2. A runtime library
@@ -45,9 +45,9 @@ The runtime library is configured by the scaffolder, and provides entry points t
 
 ### Scaffolding
 
-To get started, after [installing](#-installation-) mst-gql and its dependencies, the first task is to scaffold your store and runtime models based on your graphql endpoint.
+To get started, after [installing](#-installation-) @kibeo/mk-gql and its dependencies, the first task is to scaffold your store and runtime models based on your graphql endpoint.
 
-To scaffold TypeScript models based on a locally running graphQL endpoint on port 4000, run: `yarn mst-gql --format ts http://localhost:4000/graphql`. There are several additional args that can be passed to the CLI or put in a config file. Both are detailed [below](#cli).
+To scaffold TypeScript models based on a locally running graphQL endpoint on port 4000, run: `yarn @kibeo/mk-gql --format ts http://localhost:4000/graphql`. There are several additional args that can be passed to the CLI or put in a config file. Both are detailed [below](#cli).
 
 Tip: Note that API descriptions found in the graphQL endpoint will generally end up in the generated code, so make sure to write them!
 
@@ -56,13 +56,13 @@ After running the scaffolder, a bunch of files will be generated in the `src/mod
 _(Files marked ✏ can and should be edited. They won't be overwritten when you scaffold unless you use the `force` option.)_
 
 - `index` - A barrel file that exposes all interesting things generated
-- `RootStore.base` - A mobx-state-tree store that acts as a graphql client. Provides the following:
+- `RootStore.base` - A mobx-keystone store that acts as a graphql client. Provides the following:
   - Storage for all "root" types (see below)
   - The `.query`, `.mutate` and `.subscribe` low-level api's to run graphql queries
   - Generated `.queryXXX` ,`.mutateXXX` and `.subscribeXXX` actions based on the query definitions found in your graphQL endpoint
 - ✏ `RootStore` - Extends `RootStore.base` with any custom logic. This is the version we actually export and use.
-- ✏ `ModelBase` - Extends mst-gql's abstract model type with any custom logic, to be inherited by every concrete model type.
-- `XXXModel.base` mobx-state-tree types per type found in the graphQL endpoint. These inherit from ModelBase and expose the following things:
+- ✏ `ModelBase` - Extends @kibeo/mk-gql's abstract model type with any custom logic, to be inherited by every concrete model type.
+- `XXXModel.base` mobx-keystone types per type found in the graphQL endpoint. These inherit from ModelBase and expose the following things:
   - All fields will have been translated into MST equivalents
   - A `xxxPrimitives` query fragment, that can be used as selector to obtain all the primitive fields of an object type
   - (TypeScript only) a `type` that describes the runtime type of a model instance. These are useful to type parameters and react component properties
@@ -151,7 +151,7 @@ import "./index.css"
 import { App } from "./components/App"
 
 // 2
-import { createHttpClient } from "mst-gql"
+import { createHttpClient } from "@kibeo/mk-gql"
 import { RootStore, StoreContext } from "./models"
 
 // 3
@@ -183,7 +183,7 @@ window.store = rootStore
 
 Now, we are ready to write our first React components that use the store! Because the store is a normal MST store, like usual, `observer` based components can be used to render the contents of the store.
 
-However, mst-gql also provides the [useQuery](#useQuery-hook) hook that can be used to track the state of an ongoing query or mutation. It can be used in many different ways (see the details below), but here is a quick example:
+However, @kibeo/mk-gql also provides the [useQuery](#useQuery-hook) hook that can be used to track the state of an ongoing query or mutation. It can be used in many different ways (see the details below), but here is a quick example:
 
 ```typescript
 import React from "react"
@@ -256,19 +256,19 @@ There are few things to notice:
 
 1. Our `toggle` action wraps around the generated `mutateToggleTodo` mutation of the base model, giving us a much more convenient client api.
 2. The Query object created by `mutateToggleTodo` is returned from our action, so that we can pass it (for example) to the `setQuery` as done in the previous listing.
-3. We've set the third argument of the mutation, called `optimisticUpdate`. This function is executed immediately when the mutation is created, without awaiting it's result. So that the change becomes immediately visible in the UI. However, MST will record the [patches](https://github.com/mobxjs/mobx-state-tree#patches). If the mutation fails in the future, any changes made inside this `optimisticUpdate` callback will automatically be rolled back by reverse applying the recorded patches!
+3. We've set the third argument of the mutation, called `optimisticUpdate`. This function is executed immediately when the mutation is created, without awaiting it's result. So that the change becomes immediately visible in the UI. However, MST will record the [patches](https://github.com/mobxjs/mobx-keystone#patches). If the mutation fails in the future, any changes made inside this `optimisticUpdate` callback will automatically be rolled back by reverse applying the recorded patches!
 
 ### Customizing the query result
 
 Mutations and queries take as second argument a result selector, which defines which objects we want to receive back from the backend. Our `mutateToggleTodo` above leaves it to `undefined`, which defaults to querying all the shallow, primitive fields of the object (including `__typename` and `id`).
 
-However, in the case of toggling a Todo, this is actually overfetching, as we know the text won't change by the mutation. So instead we can provide a selector to indicate that we we are only interested in the `complete` property: `"__typename id complete"`. Note that we have to include `__typename` and `id` so that mst-gql knows to which object the result should be applied!
+However, in the case of toggling a Todo, this is actually overfetching, as we know the text won't change by the mutation. So instead we can provide a selector to indicate that we we are only interested in the `complete` property: `"__typename id complete"`. Note that we have to include `__typename` and `id` so that @kibeo/mk-gql knows to which object the result should be applied!
 
 Children can be retrieved as well by specifying them explicitly in the result selector, for example: `"__typename id complete assignee { __typename id name }`. Note that for children `__typename` and `id` (if applicable) should be selected as well!
 
 It is possible to use `gql` from the `graphql-tag` package. This enables highlighting in some IDEs, and potentially enables static analysis.
 
-However, the recommended way to write the result selectors is to use the query builder that mst-gql will generate for you. This querybuilder is entirely strongly typed, provides auto completion and automatically takes care of `__typename` and `id` fields. It can be used by passing a function as second argument to a mutation or query. That callback will be invoked with a querybuilder for the type of object that is returned. With the querybuilder, we could write the above mutation as:
+However, the recommended way to write the result selectors is to use the query builder that @kibeo/mk-gql will generate for you. This querybuilder is entirely strongly typed, provides auto completion and automatically takes care of `__typename` and `id` fields. It can be used by passing a function as second argument to a mutation or query. That callback will be invoked with a querybuilder for the type of object that is returned. With the querybuilder, we could write the above mutation as:
 
 ```javascript
 export const TodoModel = TodoModelBase.actions((self) => ({
@@ -308,11 +308,11 @@ export const MESSAGE_FRAGMENT = selectFromMessage()
 
 ### Customizing generated files
 
-You can customize all of the defined mst types: `RootStore`, `ModelBase`, and every `XXXModel`.
+You can customize all of the defined mk types: `RootStore`, `ModelBase`, and every `XXXModel`.
 
 **However**, some files (including but not limited to `.base` files) should not be touched, as they probably need to be scaffolded again in the future.
 
-Thanks to how MST models [compose](https://github.com/mobxjs/mobx-state-tree#creating-models), this means that you can introduce as many additional `views`, `actions` and `props` as you want to your models, by chaining more calls unto the model definitions. Those actions will often wrap around the generated methods, setting some predefined parameters, or composing the queries into bigger operations.
+Thanks to how MST models [compose](https://github.com/mobxjs/mobx-keystone#creating-models), this means that you can introduce as many additional `views`, `actions` and `props` as you want to your models, by chaining more calls unto the model definitions. Those actions will often wrap around the generated methods, setting some predefined parameters, or composing the queries into bigger operations.
 
 Example of a generated model, that introduces a `toggle` action that wraps around one of the generated mutations:
 
@@ -348,15 +348,15 @@ async function preload() {
 
 ### null vs. undefined
 
-Because you can control what data is fetched for a model in graphql and mst-gql it is possible for a model to have some fields that have not yet been fetched from the server. This can complicate things when we're talking about a field that can also be "empty". To help with this a field in mst-gql will be `undefined` when it has not been fetched from the server and, following graphql conventions, will be `null` if the field has been fetched but is in fact empty.
+Because you can control what data is fetched for a model in graphql and @kibeo/mk-gql it is possible for a model to have some fields that have not yet been fetched from the server. This can complicate things when we're talking about a field that can also be "empty". To help with this a field in @kibeo/mk-gql will be `undefined` when it has not been fetched from the server and, following graphql conventions, will be `null` if the field has been fetched but is in fact empty.
 
 ---
 
 # 🍿 In-depth store semantics 🍿
 
-mst-gql generates model types for every object type in your graphql definition. (Except for those excluded using the `excludes` flag). For any query or mutation that is executed by the store, the returned data will be automatically, and recursively parsed into those generated MST models. This means that for any query, you get a 'rich' object back. Finding the right model type is done based on the GraphQL meta field `__typename`, so make sure to include it in your graphql queries!
+@kibeo/mk-gql generates model types for every object type in your graphql definition. (Except for those excluded using the `excludes` flag). For any query or mutation that is executed by the store, the returned data will be automatically, and recursively parsed into those generated MST models. This means that for any query, you get a 'rich' object back. Finding the right model type is done based on the GraphQL meta field `__typename`, so make sure to include it in your graphql queries!
 
-The philosophy behind MST / mst-gql is that every 'business concept' should exist only once in the client state, so that there is only one source of truth for every message, usage, order, product etc. that you are holding in memory. To achieve this, it is recommended that every uniquely identifyable concept in your application, does have an `id` field of the graphQL `ID` type. By default, any object types for which this is true, is considered to be a "root type".
+The philosophy behind MST / @kibeo/mk-gql is that every 'business concept' should exist only once in the client state, so that there is only one source of truth for every message, usage, order, product etc. that you are holding in memory. To achieve this, it is recommended that every uniquely identifyable concept in your application, does have an `id` field of the graphQL `ID` type. By default, any object types for which this is true, is considered to be a "root type".
 
 Root types have few features:
 
@@ -377,7 +377,7 @@ GraphQL makes it possible to query a subset of the fields of any object. The ups
 
 ### Query caching
 
-As described above, (root) model instances are kept alive automatically. Beyond that, mst-gql also provides caching on the network level, based on the query string and variables, following the policies of the apollo and urql graphQL clients. The following fetch policies are supported:
+As described above, (root) model instances are kept alive automatically. Beyond that, @kibeo/mk-gql also provides caching on the network level, based on the query string and variables, following the policies of the apollo and urql graphQL clients. The following fetch policies are supported:
 
 - `"cache-first": Use cache if available, avoid network request if possible
 - `"cache-only": Use cache if available, or error if this request was not made before
@@ -385,7 +385,7 @@ As described above, (root) model instances are kept alive automatically. Beyond 
 - `"network-only": Skip cache, but cache the result
 - `"no-cache": Skip cache, and don't cache the response either
 
-The default policy is `cache-and-network`. This is different from other graphQL clients. But since mst-gql leverages the MobX reactivity system, this means that, possibly stale, results are shown on screen immediately if a response is in cache, and that the screen will automatically update as soon as a new server response arrives.
+The default policy is `cache-and-network`. This is different from other graphQL clients. But since @kibeo/mk-gql leverages the MobX reactivity system, this means that, possibly stale, results are shown on screen immediately if a response is in cache, and that the screen will automatically update as soon as a new server response arrives.
 
 The query cache is actually stored in MST as well, and can be accessed through `store.__queryCache`.
 
@@ -397,7 +397,7 @@ Since the query cache is stored in the store, this means that mixins like `useLo
 
 ## CLI
 
-The `mst-gql` command currently accepts the following arguments:
+The `@kibeo/mk-gql` command currently accepts the following arguments:
 
 - `--format ts|js|mjs` The type of files that need to be generated (default: `js`)
 - `--outDir <dir>` The output directory of the generated files (default: `src/models`)
@@ -407,8 +407,8 @@ The `mst-gql` command currently accepts the following arguments:
 - `--noReact` doesn't generate the React related utilities
 - `--force` When set, exiting files will always be overridden. This will drop all customizations of model classes!
 - `--dontRenameModels` By default generates model names from graphql schema types that are idiomatic Javascript/Typescript names, ie. type names will be PascalCased and root collection names camelCased. With `--dontRenameModels` the original names - as provided by the graphql schema - will be used for generating models.
-- `--useIdentifierNumber` Specifies the use of `identifierNumber` instead of `identifier` as the mst type for the generated models IDs. This requires your models to use numbers as their identifiers. See the [mobx-state-tree](https://mobx-state-tree.js.org/overview/types#property-types) for more information.
-- `--fieldOverrides id:uuid:idenfitier,*:ID:identifierNumber` Overrides default MST types for matching GraphQL names and types. The format is `gqlFieldName:gqlFieldType:mstType`. Supports full or partial wildcards for fieldNames, and full wildcards for fieldTypes. Case Sensitive. If multiple matches occur, the match with the least amount of wildcards will be used, followd by the order specified in the arg list if there are still multiple matches. Some examples:
+- `--useIdentifierNumber` Specifies the use of `identifierNumber` instead of `identifier` as the mk type for the generated models IDs. This requires your models to use numbers as their identifiers. See the [mobx-keystone](https://mobx-keystone.js.org/overview/types#property-types) for more information.
+- `--fieldOverrides id:uuid:idenfitier,*:ID:identifierNumber` Overrides default MST types for matching GraphQL names and types. The format is `gqlFieldName:gqlFieldType:mkType`. Supports full or partial wildcards for fieldNames, and full wildcards for fieldTypes. Case Sensitive. If multiple matches occur, the match with the least amount of wildcards will be used, followd by the order specified in the arg list if there are still multiple matches. Some examples:
 
   - `*_id:*:string` - Matches any GQL type with the field name `*_id` (like `user_id`), and uses the MST type `types.string`
   - `*:ID:identifierNumber` - Matches any GQL type with any field name and the `ID` type, and uses the MST type `types.identifierNumber`
@@ -429,9 +429,9 @@ The `mst-gql` command currently accepts the following arguments:
 
 ### Config
 
-`mst-gql` also supports [cosmiconfig](https://github.com/davidtheclark/cosmiconfig) as an alternative to using cli arguments.
+`@kibeo/mk-gql` also supports [cosmiconfig](https://github.com/davidtheclark/cosmiconfig) as an alternative to using cli arguments.
 
-A sample config can be found in [Example 2](https://github.com/mobxjs/mst-gql/blob/main/examples/2-scaffolding/mst-gql.config.js).
+A sample config can be found in [Example 2](https://github.com/mobxjs/@kibeo/mk-gql/blob/main/examples/2-scaffolding/@kibeo/mk-gql.config.js).
 
 ## RootStore
 
@@ -446,7 +446,7 @@ Makes a graphQL request to the backend. The result of the query is by default au
 - Options is an optional [QueryOptions](#queryoptions) object. The defaults are `fetchPolicy: "cache-and-network"` and `noSsr: false`
 - The method returns a [`Query`](#query-object) that can be inspected to keep track of the request progress.
 
-Be sure to at least select `__typename` and `id` in the result selector, so that mst-gql can normalize the data.
+Be sure to at least select `__typename` and `id` in the result selector, so that @kibeo/mk-gql can normalize the data.
 
 ### `mutate(query, variables, optimisticUpdate): Query`
 
@@ -477,18 +477,18 @@ const gqlWsClient = new SubscriptionClient(constants.graphQlWsUri, {
 add the ws client when creating the store:
 
 ```js
-// see: https://github.com/mobxjs/mst-gql/blob/master/src/MSTGQLStore.ts#L42-L43
+// see: https://github.com/mobxjs/@kibeo/mk-gql/blob/master/src/MSTGQLStore.ts#L42-L43
 const store = RootStore.create(undefined, {
   gqlHttpClient,
   gqlWsClient
 })
 ```
 
-When using server side rendered tools like gatsby/next/nuxt it is necessary to prevent using subscriptions server side. An error will occur because the server is missing a websocket implementation. [See code example for gatsby](https://github.com/mobxjs/mst-gql/issues/247#issuecomment-642494006).
+When using server side rendered tools like gatsby/next/nuxt it is necessary to prevent using subscriptions server side. An error will occur because the server is missing a websocket implementation. [See code example for gatsby](https://github.com/mobxjs/@kibeo/mk-gql/issues/247#issuecomment-642494006).
 
 ### Generated queries, mutations and subscriptions
 
-Based on the queries, mutations and subscriptions defined at the endpoint, mst-gql automatically scaffolds methods for those onto the base root store.
+Based on the queries, mutations and subscriptions defined at the endpoint, @kibeo/mk-gql automatically scaffolds methods for those onto the base root store.
 
 This is very convenient, as you might not need to write any graphQL queries by hand yourself in your application. Beyond that, the queries now become strongly typed. When using TypeScript, both the `variables` and the return type of the query will be correct.
 
@@ -500,7 +500,7 @@ queryPokemons(variables: { first: number }, resultSelector = pokemonModelPrimiti
 
 All parameters of this query are typically optional (unless some of the variables are requires, like in the above example).
 
-The result selector defines which fields should fetched from the backend. By default mst-gql will fetch `__typename`, `ID` and all primitive fields defined in the model, but full free to override this to make more fine tuned queries! For better reuse, consider doing this in a new action on the appropiate model. For example a query to fetch all comments and likes for a message could look like:
+The result selector defines which fields should fetched from the backend. By default @kibeo/mk-gql will fetch `__typename`, `ID` and all primitive fields defined in the model, but full free to override this to make more fine tuned queries! For better reuse, consider doing this in a new action on the appropiate model. For example a query to fetch all comments and likes for a message could look like:
 
 ```typescript
 import { MessageBaseModel } from "./MessageModel.base"
@@ -567,7 +567,7 @@ The `noSsr` field indicates whether the query should be executed during [Server 
 Creates a http client for transportation purposes. For documentation of the options, see: https://github.com/prisma/graphql-request
 
 ```typescript
-import { createHttpClient } from "mst-gql"
+import { createHttpClient } from "@kibeo/mk-gql"
 import { RootStore } from "./models/RootStore"
 
 const gqlHttpClient = createHttpClient("http://localhost:4000/graphql")
@@ -721,7 +721,7 @@ const RootStore = RootStoreBase.extend(
 
 # 🙈 Examples 🙈
 
-This project contains usage exampels in the `examples` directory showcasing various ways `mst-gql` can be used.
+This project contains usage exampels in the `examples` directory showcasing various ways `@kibeo/mk-gql` can be used.
 
 ### Running the examples
 
@@ -732,7 +732,7 @@ This project contains usage exampels in the `examples` directory showcasing vari
 
 ### 1. Getting started
 
-The [`1-getting-started`](examples/1-getting-started) example is a very trivial project, that shows how to use `mst-gql` together with TypeScript and React. Features:
+The [`1-getting-started`](examples/1-getting-started) example is a very trivial project, that shows how to use `@kibeo/mk-gql` together with TypeScript and React. Features:
 
 - React
 - TypeScript
@@ -803,20 +803,20 @@ Or, alternatively, if you want to properly format the generated files based on y
 
 ### Keep components dumb
 
-In general we recommend to keep the components dumb, and create utility functions in the store or models to perform queries needed for a certain UI component. This encourages reuse of queries between components. Furthermore, it makes testing easier, as it will be possible to test your query methods directly, without depending on rendering components. As is done for example [here](https://github.com/mobxjs/mst-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/tests/lib/todos/todostore.test.js#L18-L110)
+In general we recommend to keep the components dumb, and create utility functions in the store or models to perform queries needed for a certain UI component. This encourages reuse of queries between components. Furthermore, it makes testing easier, as it will be possible to test your query methods directly, without depending on rendering components. As is done for example [here](https://github.com/mobxjs/@kibeo/mk-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/tests/lib/todos/todostore.test.js#L18-L110)
 
 ### Paging, search state or other complex ui states
 
-...are best modelled using separate models, or by introducing additional properties and actions to keep track of paging, offset, search filters, etcetera. This is done for example in the [twitter example](https://github.com/mobxjs/mst-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/examples/3-twitter-clone/src/app/models/RootStore.ts#L18-L56) and the [apollo example](https://github.com/mobxjs/mst-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/examples/4-apollo-tutorial/client/src/models/LaunchConnectionModel.js#L15-L32)
+...are best modelled using separate models, or by introducing additional properties and actions to keep track of paging, offset, search filters, etcetera. This is done for example in the [twitter example](https://github.com/mobxjs/@kibeo/mk-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/examples/3-twitter-clone/src/app/models/RootStore.ts#L18-L56) and the [apollo example](https://github.com/mobxjs/@kibeo/mk-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/examples/4-apollo-tutorial/client/src/models/LaunchConnectionModel.js#L15-L32)
 
 ### Mutations should select the fields they change
 
 Mutation should select the fields they change in the result selection
 
-### Using mst-gql with other graphql clients
+### Using @kibeo/mk-gql with other graphql clients
 
 It is possible to scaffold with the `--modelsOnly` flag. This generates a RootStore and the model classes, but no code for the queries or React, and hence it is environment and transportation independent. Use this option if you want to use models on the server, or on the client in combination with another graphql client. Use `store.merge(data)` to merge in query results you get from your graphql client, and get back instantiated model objects.
 
 ### Stub the transportation layer in unit tests
 
-It is quite easy to stub away the backend and transportation layer, by providing a custom client to the rootStore, as is done [here](https://github.com/mobxjs/mst-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/tests/lib/todos/todostore.test.js#L18-L110).
+It is quite easy to stub away the backend and transportation layer, by providing a custom client to the rootStore, as is done [here](https://github.com/mobxjs/@kibeo/mk-gql/blob/d9d7738a53fa0daf97f6ca2522c5fd6069a2f9ae/tests/lib/todos/todostore.test.js#L18-L110).

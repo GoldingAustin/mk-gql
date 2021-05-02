@@ -2,7 +2,7 @@
 import stringify from "fast-json-stable-stringify"
 import { print } from "graphql"
 
-import { MKGQLStoreType } from "./MSTGQLStore"
+import { MKGQLStoreType } from "./MKGQLStore"
 import { action, makeObservable, observable } from "mobx"
 
 export type CaseHandlers<T, R> = {

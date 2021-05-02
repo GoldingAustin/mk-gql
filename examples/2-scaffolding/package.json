@@ -3,7 +3,7 @@
   "scripts": {
     "download": "npx apollo schema:download --endpoint=https://graphql-pokemon.now.sh/ graphql-schema.json",
     "postinstall": "../../node_modules/.bin/relative-deps",
-    "scaffold": "../../generator/mst-gql-scaffold.js",
+    "scaffold": "../../generator/mk-gql-scaffold.js",
     "build": "tsc",
     "start": "yarn scaffold && yarn build"
   },

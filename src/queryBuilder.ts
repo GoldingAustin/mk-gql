@@ -70,16 +70,18 @@ export abstract class QueryBuilder {
         enter(node: any, key: any, parent: any, path: any, ancestor: any) {
           if (node.kind === Kind.FIELD) {
             const pathString = path.slice(0, path.length - 1).toString()
+            const currentItem = currentItems.get(node.name.value)
             if (!currentItems.has(node.name.value))
               currentItems.set(node.name.value, new Set())
             if (
-              currentItems.get(node.name.value)?.has(pathString) ||
-              removeFields?.includes(node.name.value)
+              (currentItem && currentItem.has(pathString)) ||
+              (removeFields && removeFields.includes(node.name.value))
             ) {
-              currentItems.get(node.name.value)?.add(pathString)
+              const currentItem = currentItems.get(node.name.value)
+              if (currentItem) currentItem.add(pathString)
               return null
             }
-            currentItems.get(node.name.value)?.add(pathString)
+            if (currentItem) currentItem.add(pathString)
             return node
           }
         }

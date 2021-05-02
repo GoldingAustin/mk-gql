@@ -61,22 +61,10 @@ function generate(
   const modelTypePostfix = "ModelType"
 
   const interfaceAndUnionTypes = resolveInterfaceAndUnionTypes(types)
-  generateModelBase()
   generateTypes()
   generateRootStore()
-  if (!modelsOnly && !noReact) {
-    generateReactUtils()
-  }
+  generateMergeHelper()
   generateBarrelFile(files)
-
-  function generateModelBase() {
-    const entryFile = `\
-import { MSTGQLObject } from "@kibeo/mk-gql"
-
-export const ModelBase = MSTGQLObject
-`
-    generateFile("ModelBase", entryFile)
-  }
 
   function generateTypes() {
     types
@@ -185,7 +173,7 @@ export enum ${name} {
 
     const contents = `\
 ${header}
-import { types, prop, tProp, Model } from "mobx-keystone"
+import { types, prop, tProp, Model, Ref } from "mobx-keystone"
 
 ${tsType}
 
@@ -201,17 +189,7 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
   }
 
   function handleEnumTypeCore(type) {
-    return `types.enumeration("${type.name}", [
-      ${type.enumValues
-        .map(
-          (enumV) =>
-            `  "${enumV.name}",${optPrefix(
-              " // ",
-              sanitizeComment(enumV.description)
-            )}`
-        )
-        .join("\n")}
-      ])`
+    return `types.enum(${type.name})`
   }
 
   function handleObjectType(type) {
@@ -227,13 +205,13 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
     const flowerName = toFirstLower(name)
 
     const entryFile = `${ifTS(
-      'import { ExtendedModel } from "mobx-keystone"\n'
+      'import { ExtendedModel, model } from "mobx-keystone"\n'
     )}\
 import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
   format === "ts"
-    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends Instance<typeof ${name}Model> {}\n`
+    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends ${name}Model {}\n`
     : ""
 }
 ${
@@ -246,6 +224,7 @@ export { selectFrom${name}, ${flowerName}ModelPrimitives, ${name}ModelSelector }
 /**
  * ${name}Model${optPrefix("\n *\n * ", sanitizeComment(type.description))}
  */
+@model('${name}')
 export class ${name}Model extends ExtendedModel(${name}ModelBase, {}) {}
 `
 
@@ -264,11 +243,8 @@ ${
     ? `import { IObservableArray } from "mobx"\n`
     : ""
 }\
-import { types, prop, tProp, Model } from "mobx-keystone"
-import {${refs.length > 0 ? " MSTGQLRef," : ""} QueryBuilder ${
-      useTypedRefs ? ", withTypedRefs" : ""
-    } } from "@kibeo/mk-gql"
-import { ModelBase } from "./ModelBase${importPostFix}"
+import { types, prop, tProp, Model, Ref, idProp } from "mobx-keystone"
+import { QueryBuilder } from "@kibeo/mk-gql"
 ${printRelativeImports(imports)}
 ${
   useTypedRefs
@@ -295,7 +271,15 @@ ${refs
 export class ${name}ModelBase extends Model({
     __typename: tProp("${origName}"),
     ${modelProperties}
-  }) {}
+  }) {
+    ${
+      primitiveFields.includes("id")
+        ? `getRefId() {
+      return String(this.id)
+    }`
+        : ""
+    }
+  }
 
 ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
 `
@@ -389,18 +373,22 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     }
 
     function handleField(field) {
+      const fd = handleFieldType(field.name, field.type)
       let r = ""
       if (field.description)
         r += `    /** ${sanitizeComment(field.description)} */\n`
       r += `    ${field.name}:${
-        ["identifier", "identifierNumber"].includes(
-          primitiveToMstType(field.name, field.type.name, typeOverride)
-        )
-          ? `prop<${handleFieldType(field.name, field.type)}>()`
-          : `prop<${handleFieldType(
-              field.name,
-              field.type
-            )} | undefined | null>()`
+        field.name === "id"
+          ? `prop<${fd}>().withSetter()`
+          : fd.toLowerCase().includes("model")
+          ? `prop<Ref<${fd.replace("[]", "")}>${
+              fd.includes("[]") ? "[]" : ""
+            }>(${fd.includes("[]") ? "() => []" : ""}).withSetter()`
+          : `prop<${
+              fd.toLowerCase().includes("enum")
+                ? `${fd.replace("EnumType", "")}`
+                : fd
+            } | undefined | null>().withSetter()`
       },`
       return r
     }
@@ -435,11 +423,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
           )}[]`
         case "ENUM":
           primitiveFields.push(fieldName)
-          const enumType =
-            fieldType.name +
-            (!fieldType.name.toLowerCase().endsWith("enum")
-              ? "EnumType"
-              : "Type")
+          const enumType = fieldType.name
           if (type.kind !== "UNION" && type.kind !== "INTERFACE") {
             // TODO: import again when enums in query builders are supported
             addImport(
@@ -518,9 +502,8 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     interfaceOrUnionType = null
   ) {
     if (modelsOnly) return ""
-
     let output = `export class ${name}ModelSelector extends QueryBuilder {\n`
-    output += primitiveFields
+    output += Array.from(new Set(primitiveFields))
       .map((p) => `  get ${p}() { return this.__attr(\`${p}\`) }`)
       .join("\n")
     output += primitiveFields.length > 0 ? "\n" : ""
@@ -589,26 +572,60 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     toExport.push("RootStore")
 
     const entryFile = `${ifTS(
-      'import { ExtendedModel } from "mobx-keystone"\n'
+      'import { ExtendedModel, model, customRef, findParent, detach } from "mobx-keystone"\n'
     )}\
 import { RootStoreBase } from "./RootStore.base${importPostFix}"
-
+${objectTypes
+  .map((t) => `\nimport { ${t}Model } from "./${t}Model${importPostFix}"`)
+  .join("")}
 ${
   format == "ts"
-    ? "export interface RootStoreType extends Instance<typeof RootStore> {}\n\n"
+    ? "export interface RootStoreType extends RootStore {}\n\n"
     : ""
 }\
-export const RootStore = RootStoreBase
-${exampleAction}
+@model('RootStore')
+export class RootStore extends ExtendedModel(RootStoreBase, {}) {}
+${rootTypes
+  .map(
+    (t) => `export const ${transformRootName(
+      t,
+      namingConvention
+    )}Ref = customRef<${t}Model>("${t}", {
+  resolve(ref) {
+    const rootStore = findParent<RootStore>(ref, (n) => n instanceof RootStoreBase)
+    if (!rootStore) return undefined
+    return rootStore.${transformRootName(t, namingConvention)}.get(ref.id);
+  },
+        onResolvedValueChange(ref, newItem, oldItem) {
+          if (oldItem && !newItem) {
+            detach(ref)
+          }
+        },
+      })
+    `
+  )
+  .join("\n")}
+  export const rootRefs = {
+${rootTypes
+  .map(
+    (t) =>
+      `  ${transformRootName(t, namingConvention)}: ${transformRootName(
+        t,
+        namingConvention
+      )}Ref`
+  )
+  .join(",\n")}
+}
 `
 
     const modelFile = `\
 ${header}
 ${ifTS(`import { ObservableMap } from "mobx"\n`)}\
-import { types, prop, tProp, Model, objectMap } from "mobx-keystone"
-import { MSTGQLStore, configureStoreMixin${
-      format === "ts" ? ", QueryOptions, withTypedRefs" : ""
+import { types, prop, tProp, Ref, Model, objectMap, detach, model, findParent, customRef, ExtendedModel, AbstractModelClass } from "mobx-keystone"
+import { MKGQLStore, createMKGQLStore, ${
+      format === "ts" ? "QueryOptions" : ""
     } } from "@kibeo/mk-gql"
+import { mergeHelper } from './mergeHelper';
 ${objectTypes
   .map(
     (t) =>
@@ -647,6 +664,8 @@ ${ifTS(
     .join("")
 )}
 ${ifTS(`/* The TypeScript type that explicits the refs to other models in order to prevent a circular refs issue */
+
+
 type Refs = {
 ${rootTypes
   .map(
@@ -668,13 +687,15 @@ ${ifTS(generateGraphQLActionsEnum("Mutation", "Mutations", "mutate"))}
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
-export class RootStoreBase extends createMKGQLStore([${origObjectTypes
+export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([${origObjectTypes
       .map(
         (s) => `['${s}', () => ${transformTypeName(s, namingConvention)}Model]`
       )
-      .join(", ")}], [${origRootTypes.map((s) => `'${s}'`).join(", ")}]${
+      .join(", ")}], [${origRootTypes
+      .map((s) => `'${s}'`)
+      .join(", ")}], mergeHelper ${
       namingConvention == "asis" ? "" : `, "${namingConvention}"`
-    })({
+    }),{
 ${rootTypes
   .map(
     (t) =>
@@ -688,8 +709,118 @@ ${rootTypes
   ${generateQueries()}
   }
 `
-    generateFile("RootStore", entryFile)
+    generateFile("RootStore", entryFile, true)
     generateFile("RootStore.base", modelFile, true)
+  }
+
+  function generateMergeHelper() {
+    const modelFile = `import { values } from 'mobx';
+import { detach, runUnprotected } from 'mobx-keystone';
+import { typenameToCollectionName } from '@kibeo/mk-gql';
+import { rootRefs } from './RootStore';
+
+export function mergeHelper(store: any, data: any, del: boolean) {
+  function merge(data: any, del: boolean): any {
+    if (!data || typeof data !== 'object') return data;
+    if (Array.isArray(data)) {
+      const items: any[] = [];
+      for (const d of data) {
+        try {
+          items.push(merge(d, del));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return items;
+    }
+
+    const { __typename, id } = data;
+
+    // convert values deeply first to MST objects as much as possible
+    const snapshot: any = {};
+    for (const key in data) {
+      snapshot[key] = merge(data[key], del);
+    }
+
+    // GQL object
+    if (__typename && id && store.isKnownType(__typename)) {
+      try {
+        // GQL object with known type, instantiate or recycle MST object
+        const typeDef = store.getTypeDef(__typename);
+        // Try to reuse instance, even if it is not a root type
+        let instance;
+        if (id !== undefined) instance = store.resolveReference(__typename, id, data);
+        if (instance) {
+          Object.keys(snapshot).forEach((key) => {
+            if (snapshot[key]) {
+              runUnprotected(\`set \${key}\`, () => {
+                const value: any = snapshot[key];
+                if (value?.__typename && value?.id) {
+                  instance[key] = rootRefs[typenameToCollectionName(value.__typename)](
+                    store.resolveReference(value.__typename, value.id)
+                  );
+                } else {
+                  instance[key] = value;
+                }
+              });
+            }
+          });
+        } else {
+          // create a new one
+          instance = new typeDef(snapshot);
+          if (store.isRootType(__typename)) {
+            Object.keys(snapshot).forEach((key) => {
+              runUnprotected(\`set \${key}\`, () => {
+                if (snapshot[key]) {
+                  const value: any = snapshot[key];
+                  if (value?.__typename && value?.id) {
+                    instance[key] = rootRefs[typenameToCollectionName(value.__typename)](
+                      store.resolveReference(value.__typename, value.id)
+                    );
+                  } else {
+                    instance[key] = value;
+                  }
+                }
+              });
+            });
+            // register in the store if a root
+            store[store.getCollectionName(__typename)] && store[store.getCollectionName(__typename)].set(id, instance);
+          }
+          instance.__setStore(store);
+        }
+        return instance;
+      } catch (e) {
+        return snapshot;
+      }
+    } else {
+      // GQL object with unknown type, return verbatim
+      return snapshot;
+    }
+  }
+
+  const items = merge(data, false);
+  if (del) {
+    const key = Object.keys(items)[0];
+    const parsedItems = items[key];
+    const item = parsedItems[0];
+    let storeKey = key;
+    if (item) {
+      const { __typename } = item;
+      storeKey = typenameToCollectionName(__typename);
+    }
+    values(store[storeKey]).forEach((d: any) => {
+      const ind = parsedItems.findIndex((it: any) => it.id === d.id);
+      if (ind < 0) {
+        detach(d);
+      }
+    });
+  }
+  return items;
+}
+
+
+    `
+    generateFile("mergeHelper", modelFile, true)
   }
 
   /**
@@ -963,33 +1094,6 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
     return types.find(
       (type) => type.origName === name && type.kind === "OBJECT"
     )
-  }
-
-  function generateReactUtils() {
-    toExport.push("reactUtils")
-    const contents = `\
-${header}
-
-import { createStoreContext, createUseQueryHook } from "@kibeo/mk-gql"
-import * as React from "react"
-${
-  format === "ts"
-    ? `import { RootStoreType } from "./RootStore${importPostFix}"`
-    : ""
-}
-
-${format === "ts" ? "// @ts-ignore" : ""}
-export const StoreContext = createStoreContext${
-      format === "ts" ? `<RootStoreType>` : ""
-    }(React${format === "ts" ? " as any" : ""})
-
-${format === "ts" ? "// @ts-ignore" : ""}
-export const useQuery = createUseQueryHook(StoreContext, React${
-      format === "ts" ? " as any" : ""
-    })
-`
-
-    generateFile("reactUtils", contents, true)
   }
 
   function generateBarrelFile() {

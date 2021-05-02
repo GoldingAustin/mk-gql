@@ -1,5 +1,5 @@
-export { createMKGQLStore, MKGQLStoreType } from "./MSTGQLStore"
+export { createMKGQLStore, MKGQLStoreType, MKGQLStore } from "./MKGQLStore"
 export { Query, CaseHandlers, QueryOptions, FetchPolicy } from "./Query"
 export { createHttpClient, HttpClientOptions } from "./createHttpClient"
 export { QueryBuilder } from "./queryBuilder"
-export * from "./mergeHelper"
+export { typenameToCollectionName } from "./utils"

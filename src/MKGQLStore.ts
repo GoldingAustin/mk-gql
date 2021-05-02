@@ -1,106 +1,114 @@
 import camelcase from "camelcase"
-import { Model, prop, objectMap, model } from "mobx-keystone"
+import {
+  Model,
+  prop,
+  objectMap,
+  model,
+  ExtendedModel,
+  modelAction
+} from "mobx-keystone"
 import pluralize from "pluralize"
 import { deflateHelper } from "./deflateHelper"
 
-import { mergeHelper } from "./mergeHelper"
 import { Query, QueryOptions } from "./Query"
 
 export interface RequestHandler<T = any> {
   request(query: string, variables: any): Promise<T>
 }
 
+@model("MKGQLStore")
+export class MKGQLStore extends Model({
+  __queryCache: prop(() => objectMap<string>()),
+  isAttached: prop(false)
+}) {
+  ssr: boolean = false
+  __promises: Map<string, Promise<unknown>> = new Map()
+  __afterInit: boolean = false
+  gqlHttpClient: RequestHandler | undefined
+  middleWare: any
+
+  @modelAction
+  middleware(item: any) {
+    this.middleWare && this.middleWare(item)
+  }
+
+  @modelAction
+  resolveReference(type: any, id: any) {
+    // @ts-ignore
+    const accessor = this.getCollectionName(type.toLowerCase())
+    return this[accessor] && this[accessor].get(id)
+  }
+
+  @modelAction
+  deflate(data: unknown) {
+    return deflateHelper(this, data)
+  }
+
+  @modelAction
+  rawRequest(query: string, variables: any): Promise<any> | undefined {
+    try {
+      if (this.gqlHttpClient && this.gqlHttpClient.request)
+        return this.gqlHttpClient.request(query, variables)
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
+  @modelAction
+  query<T>(
+    query: string,
+    variables?: any,
+    options: QueryOptions = {},
+    del?: boolean
+  ): Query<T> {
+    // @ts-ignore
+    return new Query(this, query, variables, options, !!del)
+  }
+
+  @modelAction
+  mutate<T>(
+    mutation: string,
+    variables?: any,
+    optimisticUpdate?: () => void
+  ): Query<T> {
+    return this.query(mutation, variables, {
+      fetchPolicy: "network-only",
+      delete: mutation.toLowerCase().includes("delete")
+    })
+  }
+
+  __pushPromise(promise: Promise<{}> | undefined, queryKey: string) {
+    if (promise) {
+      this.__promises.set(queryKey, promise)
+      const onSettled = () => this.__promises.delete(queryKey)
+      promise.then(onSettled, onSettled)
+    }
+  }
+
+  __runInStoreContext<T>(fn: () => T) {
+    return fn()
+  }
+
+  __cacheResponse(key: string, response: any) {
+    this.__queryCache.set(key, response)
+  }
+
+  __onAfterInit() {
+    this.__afterInit = true
+  }
+}
+
 // @ts-ignore
-export const createMKGQLStore = (
-  knownTypes: [string, () => typeof Model][],
+export function createMKGQLStore<T>(
+  knownTypes: [string, () => any][],
   rootTypes: string[],
+  mergeHelper: any,
   namingConvention?: string
-) => {
-  @model("MKGQLStore")
-  class MKGQLStore extends Model({
-    __queryCache: prop(() => objectMap<string>()),
-    isAttached: prop(false)
-  }) {
-    ssr: boolean = false
-    __promises: Map<string, Promise<unknown>> = new Map()
-    __afterInit: boolean = false
-    gqlHttpClient: RequestHandler | undefined
-    middleWare: any
+): T {
+  @model("MKGQL")
+  class CreatedStore extends ExtendedModel(MKGQLStore, {}) {
     kt = new Map()
     rt = new Set(rootTypes)
-    constructor(props, gqlHttpClient?: RequestHandler, middleWare?: any) {
-      super(props)
-      this.gqlHttpClient = gqlHttpClient
-      this.middleWare = middleWare
-    }
-
-    middleware(item: any) {
-      let parent
-      this.middleWare?.(item)
-    }
-
-    resolveReference(type: any, id: any) {
-      this[type]?.get(id)
-    }
-
-    merge(data: unknown, del: boolean) {
-      return mergeHelper(this, data, del)
-    }
-
-    deflate(data: unknown) {
-      return deflateHelper(this, data)
-    }
-
-    rawRequest(query: string, variables: any): Promise<any> | undefined {
-      try {
-        if (this.gqlHttpClient && this.gqlHttpClient.request)
-          return this.gqlHttpClient.request(query, variables)
-      } catch (e) {
-        return Promise.reject(e)
-      }
-    }
-
-    query<T>(
-      query: string,
-      variables?: any,
-      options: QueryOptions = {},
-      del?: boolean
-    ): Query<T> {
-      // @ts-ignore
-      return new Query(this, query, variables, options, !!del)
-    }
-
-    mutate<T>(
-      mutation: string,
-      variables?: any,
-      optimisticUpdate?: () => void
-    ): Query<T> {
-      return this.query(mutation, variables, {
-        fetchPolicy: "network-only",
-        delete: mutation.toLowerCase().includes("delete")
-      })
-    }
-
-    __pushPromise(promise: Promise<{}> | undefined, queryKey: string) {
-      if (promise) {
-        this.__promises.set(queryKey, promise)
-        const onSettled = () => this.__promises.delete(queryKey)
-        promise.then(onSettled, onSettled)
-      }
-    }
-
-    __runInStoreContext<T>(fn: () => T) {
-      return fn()
-    }
-
-    __cacheResponse(key: string, response: any) {
-      this.__queryCache.set(key, response)
-    }
-
-    __onAfterInit() {
-      this.__afterInit = true
-    }
-
     isKnownType(typename: string): boolean {
       return this.kt.has(typename)
     }
@@ -109,6 +117,9 @@ export const createMKGQLStore = (
     }
     getTypeDef(typename: string): typeof Model {
       return this.kt.get(typename)!
+    }
+    merge(data: unknown, del: boolean) {
+      return mergeHelper(this, data, del)
     }
     getCollectionName(typename: string): string {
       if (namingConvention == "js") {
@@ -122,6 +133,7 @@ export const createMKGQLStore = (
       return typename.toLowerCase() + "s"
     }
     onInit() {
+      if (super.onInit) super.onInit()
       knownTypes.forEach(([key, typeFn]) => {
         const type = typeFn()
         if (!type)
@@ -132,8 +144,7 @@ export const createMKGQLStore = (
       })
     }
   }
-
-  return MKGQLStore
+  return (CreatedStore as unknown) as T
 }
 
 export function configureStoreMixin(
@@ -182,4 +193,4 @@ export function configureStoreMixin(
   })
 }
 
-export type MKGQLStoreType = ReturnType<typeof createMKGQLStore>
+export type MKGQLStoreType = MKGQLStore

@@ -1,32 +1,35 @@
 {
   "name": "@kibeo/mk-gql",
-  "version": "0.14.1",
+  "version": "0.1.1",
   "description": "Bindings for mobx-keystone and GraphQL",
   "authors": [
     "Michel Weststrate",
     "G"
   ],
   "keywords": [
-    "mobx-state-tree",
+    "mobx-keystone",
     "graphql"
   ],
-  "homepage": "https://github.com/mobxjs/mst-gql#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/kibeo/mk-gql#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mobxjs/mst-gql.git"
+    "url": "git+https://github.com/kibeo/mk-gql.git"
   },
   "bugs": {
-    "url": "https://github.com/mobxjs/mst-gql/issues"
+    "url": "https://github.com/kibeo/mk-gql/issues"
   },
   "license": "MIT",
-  "main": "dist/mst-gql.js",
-  "source": "src/mst-gql.ts",
-  "umd:main": "dist/mst-gql.umd.js",
-  "module": "dist/mst-gql.module.js",
-  "jsnext:main": "dist/mst-gql.module.js",
-  "react-native": "dist/mst-gql.module.js",
-  "types": "./dist/mst-gql.d.ts",
-  "bin": "./generator/mst-gql-scaffold.js",
+  "main": "dist/mk-gql.js",
+  "source": "src/mk-gql.ts",
+  "umd:main": "dist/mk-gql.umd.js",
+  "module": "dist/mk-gql.module.js",
+  "jsnext:main": "dist/mk-gql.module.js",
+  "react-native": "dist/mk-gql.module.js",
+  "types": "./dist/mk-gql.d.ts",
+  "bin": "./generator/mk-gql-scaffold.js",
   "files": [
     "dist",
     "generator"
@@ -34,7 +37,7 @@
   "scripts": {
     "test": "jest test && cd examples/2-scaffolding && yarn && yarn start",
     "watch": "jest test --watch",
-    "build": "microbundle --no-compress --external mobx,mobx-react-lite,mobx-keystone,graphql-tag,graphql,graphql-request",
+    "build": "microbundle --no-compress --external mobx,mobx-keystone,graphql-tag,graphql,graphql-request",
     "format": "prettier --write '**/*'"
   },
   "husky": {
@@ -50,7 +53,6 @@
     "fast-json-stable-stringify": "^2.1.0",
     "graphql": "^14.6.0",
     "graphql-request": "^1.8.2",
-    "lodash": "^4.17.20",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
@@ -75,14 +77,13 @@
     "microbundle": "^0.13.0",
     "mobx": "^6.1.0",
     "mobx-keystone": "^0.57.1",
-    "mobx-react-lite": "^3.2.0",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "relative-deps": "^1.0.4",
-    "subscriptions-transport-ws": "^0.9.18",
-    "typescript": "^4.0.3"
+    "tslib": "^2.2.0",
+    "typescript": "^4.2.4"
   },
   "peerDependencies": {
     "mobx": "^4.0.0 || ^5.0.0",
