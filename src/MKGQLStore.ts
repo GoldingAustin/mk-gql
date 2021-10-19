@@ -5,7 +5,9 @@ import {
   objectMap,
   model,
   ExtendedModel,
-  modelAction
+  modelAction,
+  tProp,
+  types
 } from "mobx-keystone"
 import pluralize from "pluralize"
 import { deflateHelper } from "./deflateHelper"
@@ -102,7 +104,6 @@ export class MKGQLStore extends Model({
 export function createMKGQLStore<T>(
   knownTypes: [string, () => any][],
   rootTypes: string[],
-  mergeHelper: any,
   namingConvention?: string
 ): T {
   @model("MKGQL")
@@ -118,8 +119,9 @@ export function createMKGQLStore<T>(
     getTypeDef(typename: string): typeof Model {
       return this.kt.get(typename)!
     }
-    merge(data: unknown, del: boolean) {
-      return mergeHelper(this, data, del)
+    @modelAction merge(data: unknown, del: boolean) {
+      // @ts-ignore
+      return this.mergeHelper.mergeAll(data, del)
     }
     getCollectionName(typename: string): string {
       if (namingConvention == "js") {

@@ -2577,8 +2577,8 @@ __metadata:
     husky: ^4.3.0
     jest: ^26.4.2
     microbundle: ^0.13.0
-    mobx: ^6.1.0
-    mobx-keystone: ^0.57.1
+    mobx: ^6.3.2
+    mobx-keystone: ^0.60.2
     pluralize: ^8.0.0
     prettier: ^2.1.2
     pretty-quick: ^3.0.2
@@ -9108,9 +9108,9 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"mobx-keystone@npm:^0.57.1":
-  version: 0.57.1
-  resolution: "mobx-keystone@npm:0.57.1"
+"mobx-keystone@npm:^0.60.2":
+  version: 0.60.2
+  resolution: "mobx-keystone@npm:0.60.2"
   dependencies:
     fast-deep-equal: ^3.1.3
     ts-toolbelt: ^9.6.0
@@ -9118,14 +9118,14 @@ fsevents@~2.3.1:
     uuid: ^8.3.2
   peerDependencies:
     mobx: ^6.0.0 || ^5.0.0 || ^4.0.0
-  checksum: 849a195626323e53b9b831c74078f57962c94eb94e08549d1daa2cd1b727bf89a7bf04f4711b5dea4d6ae07d9399315e567505b3551c0fd39da11d9008a2bde5
+  checksum: 7c79f3ff7c7efc47c145c2895f6d49381376174903200558e1d36fe97c51c94d0aa1425411073ade9b9db04ebd87c7efb3d3cbebaf0a7808636ef2f416c12231
   languageName: node
   linkType: hard
 
-"mobx@npm:^6.1.0":
-  version: 6.3.0
-  resolution: "mobx@npm:6.3.0"
-  checksum: 1f4e54c889777f2f37228c5c8962bd8e21beec7a9689740b01c1f295a319f30e2cb900ffd79d7c6c17ad5b5a9693bfb6562f7a54ce18e90e564554bad17f5168
+"mobx@npm:^6.3.2":
+  version: 6.3.2
+  resolution: "mobx@npm:6.3.2"
+  checksum: 1611aa8cba7b9270b67c663f1a9250da4198afc75ea2a18a920292778a2ac3027bb963885a180fafdee616796b1c2044fdb50bd1f13f4b9fe34d9685efa62f02
   languageName: node
   linkType: hard
 
