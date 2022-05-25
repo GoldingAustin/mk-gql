@@ -1,6 +1,6 @@
 const path = require("path")
 const fs = require("fs")
-const graphql = require("graphql")
+const { buildSchema, graphqlSync, introspectionQuery } = require("graphql")
 const camelcase = require("camelcase")
 const pluralize = require("pluralize")
 const escapeStringRegexp = require("escape-string-regexp")
@@ -44,7 +44,7 @@ function generate(
   let currentType = "<none>"
   let origRootTypes = []
 
-  const header = `/* This is a @kibeo/mk-gql generated file, don't modify it manually */
+  const header = `/* This is a mk-gql generated file, don't modify it manually */
 /* eslint-disable */${format === "ts" ? "\n/* tslint:disable */" : ""}`
   const importPostFix = format === "mjs" ? ".mjs" : ""
 
@@ -97,8 +97,6 @@ function generate(
     origRootTypes = [...rootTypes]
     rootTypes = rootTypes.map((t) => transformTypeName(t, namingConvention))
 
-    console.log("rootTypes", JSON.stringify(rootTypes, null, 2))
-
     types
       .filter((type) => knownTypes.includes(type.name))
       .forEach((type) => {
@@ -141,7 +139,10 @@ function generate(
             (field) =>
               field.name === "id" &&
               skipNonNull(field.type).kind === "SCALAR" &&
-              skipNonNull(field.type).name === "ID"
+              (skipNonNull(field.type).name === "ID" ||
+                skipNonNull(field.type).name === "String" ||
+                skipNonNull(field.type).name === "Int" ||
+                skipNonNull(field.type).name === "Float")
           )
       )
       .map((t) => t.origName)
@@ -203,11 +204,6 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
 import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
-  format === "ts"
-    ? `/* The TypeScript type of an instance of ${name}Model */\nexport interface ${name}${modelTypePostfix} extends ${name}Model {}\n`
-    : ""
-}
-${
   modelsOnly
     ? ""
     : `/* A graphql query fragment builders for ${name}Model */
@@ -221,10 +217,6 @@ export { selectFrom${name}, ${flowerName}ModelPrimitives, ${name}ModelSelector }
 export class ${name}Model extends ExtendedModel(${name}ModelBase, {}) {}
 `
 
-    // if (format === "ts") {
-    //   addImportToMap(imports, name + "Model.base", "index", "RootStoreType")
-    // }
-
     const useTypedRefs = refs.length > 0 && format === "ts"
     const hasNestedRefs = refs.some(([, , isNested]) => isNested)
 
@@ -233,11 +225,11 @@ ${header}
 
 ${
   useTypedRefs && hasNestedRefs
-    ? `import { IObservableArray } from "mobx"\n`
+    ? `import type { IObservableArray } from "mobx"\n`
     : ""
 }\
 import { types, prop, tProp, Model, Ref, idProp } from "mobx-keystone"
-import { QueryBuilder } from "@kibeo/mk-gql"
+import { QueryBuilder } from "mk-gql"
 ${printRelativeImports(typeImports, true)}
 ${printRelativeImports(imports)}
 ${
@@ -247,8 +239,8 @@ type Refs = {
 ${refs
   .map(([fieldName, fieldTypeName, isNested]) =>
     isNested
-      ? `  ${fieldName}: IObservableArray<${fieldTypeName}${modelTypePostfix}>;`
-      : `  ${fieldName}: ${fieldTypeName}${modelTypePostfix};`
+      ? `  ${fieldName}: IObservableArray<${fieldTypeName}Model>;`
+      : `  ${fieldName}: ${fieldTypeName}Model;`
   )
   .join("\n")}
 }\n
@@ -304,19 +296,11 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         const toBeImported = [`${t.name}ModelSelector`]
         if (isUnion) toBeImported.push(`${toFirstLower(t.name)}ModelPrimitives`)
         addImportToMap(imports, fileName, `${t.name}Model`, ...toBeImported)
-
-        /** 1) Imports model type from the model */
-        addImportToMap(
-          imports,
-          fileName,
-          `${t.name}Model`,
-          `${t.name}ModelType`
-        )
       })
 
     // Start building out the ModelSelector file
     let contents = header + "\n\n"
-    contents += 'import { QueryBuilder } from "@kibeo/mk-gql"\n'
+    contents += 'import { QueryBuilder } from "mk-gql"\n'
     contents += printRelativeImports(imports)
 
     /** 2) Add the correct type for a TS union to the exports of the ModelSelector file */
@@ -324,7 +308,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       `export type ${
         interfaceOrUnionType.name
       }Union = ${interfaceOrUnionType.ofTypes
-        .map((unionModel) => `${unionModel.name}ModelType`)
+        .map((unionModel) => `${unionModel.name}Model`)
         .join(" | ")}\n\n`
     )
 
@@ -383,15 +367,16 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       r += `    ${field.name}:${
         field.name === "id"
           ? `prop<${fd}>().withSetter()`
-          : fd.toLowerCase().includes("model")
-          ? `prop<Ref<${fd.replace("[]", "")}Type>${
+          : fd.toLowerCase().includes("model") &&
+            rootTypes.includes(fd.replace("[]", "").replace("Model", ""))
+          ? `prop<Ref<${fd.replace("[]", "")}>${
               fd.includes("[]") ? "[]" : ""
             }>(${fd.includes("[]") ? "() => []" : ""}).withSetter()`
           : `prop<${
               fd.toLowerCase().includes("enum")
                 ? `${fd.replace("EnumType", "")}`
                 : fd
-            } | undefined | null>().withSetter()`
+            } | null>().withSetter()`
       },`
       return r
     }
@@ -429,7 +414,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
           const enumType = fieldType.name
           if (type.kind !== "UNION" && type.kind !== "INTERFACE") {
             // TODO: import again when enums in query builders are supported
-            addImport(
+            addTypeImport(
               fieldType.name +
                 (!fieldType.name.toLowerCase().endsWith("enum") ? "Enum" : ""),
               enumType
@@ -450,13 +435,13 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       nonPrimitiveFields.push([fieldName, fieldType.name])
       const isSelf = fieldType.name === currentType
 
-      // this type is not going to be handled by @kibeo/mk-gql, store as frozen
+      // this type is not going to be handled by mk-gql, store as frozen
       if (!knownTypes.includes(fieldType.name)) return `frozen()`
       // import the type
       const modelType = fieldType.name + "Model"
       // addImport(modelType, modelType)
       if (format === "ts") {
-        addTypeImport(modelType, `${fieldType.name}${modelTypePostfix}`)
+        addTypeImport(modelType, `${fieldType.name}Model`)
       }
       if (!modelsOnly) {
         addImport(`${modelType}`, `${modelType}Selector`)
@@ -575,72 +560,25 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     toExport.push("RootStore")
 
     const entryFile = `${ifTS(
-      'import { ExtendedModel, model, customRef, findParent, detach } from "mobx-keystone"\n'
+      'import { ExtendedModel, model } from "mobx-keystone"\n'
     )}\
 import { RootStoreBase } from "./RootStore.base${importPostFix}"
-${objectTypes
-  .map((t) => `\nimport type { ${t}Model } from "./${t}Model${importPostFix}"`)
-  .join("")}
-${
-  format == "ts"
-    ? "export interface RootStoreType extends RootStore {}\n\n"
-    : ""
-}\
 @model('RootStore')
 export class RootStore extends ExtendedModel(RootStoreBase, {}) {}
-function resolve(path, obj={}, separator='.') {
-    const properties = Array.isArray(path) ? path : path.split(separator)
-    return properties.reduce((prev, curr) => prev && prev[curr], obj)
-}
-
-export const appRef = <T extends object>(storeInstance, modelTypeId, path) =>
-  customRef<T>(modelTypeId, {
-    resolve: (ref) =>
-      resolve(path, findParent<typeof storeInstance>(ref, (n) => n instanceof storeInstance))?.get(ref.id),
-    onResolvedValueChange(ref, newItem, oldItem) {
-      if (oldItem && !newItem) detach(ref);
-    },
-  });
-
-${rootTypes
-  .map(
-    (t) => `export const ${transformRootName(
-      t,
-      namingConvention
-    )}Ref = appRef<${t}ModelType>(RootStore, "${t}", '${transformRootName(
-      t,
-      namingConvention
-    )}')
-    `
-  )
-  .join("\n")}
-  export const rootRefs = {
-${rootTypes
-  .map(
-    (t) =>
-      `  ${transformRootName(t, namingConvention)}: ${transformRootName(
-        t,
-        namingConvention
-      )}Ref`
-  )
-  .join(",\n")}
-}
 `
 
     const modelFile = `\
 ${header}
-${ifTS(`import { ObservableMap } from "mobx"\n`)}\
+${ifTS(`import type { ObservableMap } from "mobx"\n`)}\
 import { types, prop, tProp, Ref, Model, modelAction, objectMap, detach, model, findParent, customRef, ExtendedModel, AbstractModelClass } from "mobx-keystone"
 import { MKGQLStore, createMKGQLStore, ${
       format === "ts" ? "QueryOptions" : ""
-    } } from "@kibeo/mk-gql"
+    } } from "mk-gql"
 import { MergeHelper } from './mergeHelper';
 ${objectTypes
   .map(
     (t) =>
-      `\nimport ${ifTS("type")} { ${ifTS(
-        `${t}${modelTypePostfix}`
-      )} } from "./${t}Model${importPostFix}";\nimport { ${t}Model, ${toFirstLower(
+      `\nimport { ${t}Model, ${toFirstLower(
         t
       )}ModelPrimitives, ${t}ModelSelector  } from "./${t}Model${importPostFix}"`
   )
@@ -659,7 +597,7 @@ ${
 ${enumTypes
   .map(
     (t) =>
-      `\nimport { ${t} } from "./${t}${
+      `\nimport type { ${t} } from "./${t}${
         !t.toLowerCase().endsWith("enum") ? "Enum" : ""
       }${importPostFix}"`
   )
@@ -684,7 +622,7 @@ ${rootTypes
       `  ${transformRootName(
         t,
         namingConvention
-      )}: ObservableMap<string, ${t}${modelTypePostfix}>`
+      )}: ObservableMap<string, ${t}Model>`
   )
   .join(",\n")}
 }\n\n`)}\
@@ -718,6 +656,43 @@ ${rootTypes
   }) {
   ${generateQueries()}
   }
+  function resolve(path, obj={}, separator='.') {
+    const properties = Array.isArray(path) ? path : path.split(separator)
+    return properties.reduce((prev, curr) => prev && prev[curr], obj)
+}
+
+export const appRef = <T extends object>(storeInstance, modelTypeId, path) =>
+  customRef<T>(modelTypeId, {
+    resolve: (ref: Ref<any>) =>
+      resolve(path, findParent<typeof storeInstance>(ref, (n) => n instanceof storeInstance))?.get(ref?.id),
+    onResolvedValueChange(ref, newItem, oldItem) {
+      if (oldItem && !newItem) detach(ref);
+    },
+  });
+
+${rootTypes
+  .map(
+    (t) => `export const ${transformRootName(
+      t,
+      namingConvention
+    )}Ref = appRef<${t}Model>(RootStoreBase, "${t}", '${transformRootName(
+      t,
+      namingConvention
+    )}')
+    `
+  )
+  .join("\n")}
+  export const rootRefs = {
+${rootTypes
+  .map(
+    (t) =>
+      `  ${transformRootName(t, namingConvention)}: ${transformRootName(
+        t,
+        namingConvention
+      )}Ref`
+  )
+  .join(",\n")}
+}
 `
     generateFile("RootStore", entryFile, true)
     generateFile("RootStore.base", modelFile, true)
@@ -725,14 +700,15 @@ ${rootTypes
 
   function generateMergeHelper() {
     const modelFile = `import { toJS } from 'mobx';
-import { detach, Model, model, modelAction, findParent } from 'mobx-keystone';
-import { rootRefs, RootStore } from './RootStore';
+import { detach, Model, model, modelAction, findParent, applySnapshot, getSnapshot } from 'mobx-keystone';
+import { RootStore } from './RootStore';
+import { rootRefs } from './RootStore.base';
 
 @model('MergeHelper')
 export class MergeHelper extends Model({}) {
   @modelAction mergeAll(data: any, del: boolean) {
     const store = findParent<any>(this, (n) => n instanceof RootStore);
-    const items = this.merge(toJS(data), false, 0);
+    const items = this.merge(toJS(data), false, 0, store);
     if (del) {
       const key = Object.keys(items)[0];
       const parsedItems = items[key];
@@ -748,67 +724,91 @@ export class MergeHelper extends Model({}) {
           try {
             detach(d);
           } catch (e) {
-            window.console.debug(e)
+            window.console.debug(e);
           }
         }
       });
     }
     return items;
   }
-  
-  @modelAction merge(data: any, del: boolean, level: number): any {
-    const store = findParent<any>(this, (n) => n instanceof RootStore);
+
+  @modelAction merge(data: any, del: boolean, level: number, store: any): any {
     if (!data || typeof data !== 'object') return data;
     if (Array.isArray(data)) {
       const items: any[] = [];
       for (const d of data) {
         try {
-          items.push(this.merge(d, del, level + 1));
+          items.push(this.merge(d, del, level + 1, store));
         } catch (e) {
           window.console.error(e);
         }
       }
       return items;
     }
-
-    const { __typename, id } = data;
+    let { __typename, id } = data;
 
     // convert values deeply first to MST objects as much as possible
-    let snapshot: any = {};
+    let snapshot: any;
     const typeDef = store.getTypeDef(__typename);
-      if (id && __typename) {
-        snapshot = store[store.getCollectionName(__typename)].get(id);
-        if (!snapshot) {
-          snapshot = new typeDef(data);
-          store[store.getCollectionName(__typename)] && store[store.getCollectionName(__typename)].set(id, snapshot);
+    if (id && __typename) {
+      snapshot = store[store.getCollectionName(__typename)]?.get(String(id));
+      if (!snapshot) {
+        snapshot = new typeDef(data);
+        store[store.getCollectionName(__typename)]?.set(String(id), snapshot);
+      } else {
+        try {
+          applySnapshot(snapshot, merge(getSnapshot(snapshot), data));
+        } catch (e) {
+          //
         }
       }
-      for (const key in data) {
-        if (data[key]?.id && data[key]?.__typename) {
-          try {
-            const item = this.merge(data[key], del, level + 1);
-            snapshot[key] =
-              level > 0
-                ? rootRefs[store.getCollectionName(data[key]?.__typename)](
-                store[store.getCollectionName(data[key]?.__typename)].get(data[key]?.id) ?? item
-                )
-                : item;
-          } catch (e) {
-            window.console.debug(e); 
-          }
-        } else {
-          const item = this.merge(data[key], del, level + 1);
-          if (Array.isArray(item)) {
-            snapshot[key] = item.map((d) =>
-              d?.id && d?.__typename && level > 0 ? rootRefs[store.getCollectionName(d?.__typename)](d) : d
-            );
+    }
+    if (!snapshot) snapshot = {};
+    for (const key in data) {
+      if (data[key]?.id && data[key]?.__typename) {
+        try {
+          const item = this.merge(data[key], del, level + 1, store);
+          if (level > 0) {
+            try {
+              snapshot[key] = rootRefs[store.getCollectionName(data[key]?.__typename)](
+                store[store.getCollectionName(data[key]?.__typename)]?.get(String(data[key]?.id)) ?? item
+              );
+            } catch (e) {
+              snapshot[key] = item;
+            }
           } else {
             snapshot[key] = item;
           }
+        } catch (e) {
+          window.console.debug(e);
+        }
+      } else {
+        const item = this.merge(data[key], del, level + 1, store);
+        if (Array.isArray(item)) {
+          snapshot[key] = item.map((d) =>
+            d?.id && d?.__typename && level > 0 ? rootRefs[store.getCollectionName(d?.__typename)](d) : d
+          );
+        } else {
+          snapshot[key] = item;
         }
       }
+    }
     return snapshot;
   }
+}
+
+function merge(a, b) {
+  return Object.entries(b).reduce((o, [k, v]) => {
+    o[k] =
+      v && typeof v === 'object'
+        ? merge((o[k] = o[k] || (Array.isArray(v) ? [] : {})), v)
+        : v instanceof Date
+        ? v.valueOf()
+        : v
+        ? v
+        : o[k];
+    return o;
+  }, a);
 }`
     generateFile("mergeHelper", modelFile, true)
   }
@@ -940,7 +940,7 @@ ${enumContent}
                       returnType.kind === "UNION" ||
                       returnType.kind === "INTERFACE"
                         ? "Union"
-                        : modelTypePostfix
+                        : "Model"
                     }${returnsList ? "[]" : ""}`
               }}>`
 
@@ -1091,8 +1091,9 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
 ${header}
 
 ${toExport.map((f) => `export * from "./${f}${importPostFix}"`).join("\n")}
+export * from "./RootStore.base";
 `
-    generateFile("index", contents, true)
+    generateFile("root", contents, true)
   }
 
   function generateFile(name, contents, force = false) {
@@ -1282,7 +1283,7 @@ function writeFiles(
       }
 
       writeFile(
-        splits[1] || "index",
+        splits[1] || "root",
         contents,
         force || forceAll,
         format,
@@ -1316,8 +1317,8 @@ function scaffold(
     fieldOverrides: []
   }
 ) {
-  const schema = graphql.buildSchema(definition)
-  const res = graphql.graphqlSync(schema, graphql.introspectionQuery)
+  const schema = buildSchema(definition)
+  const res = graphqlSync(schema, introspectionQuery)
   if (!res.data)
     throw new Error("graphql parse error:\n\n" + JSON.stringify(res, null, 2))
   return generate(

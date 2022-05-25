@@ -1,10 +1,9 @@
 {
-  "name": "@kibeo/mk-gql",
-  "version": "0.3.3",
+  "name": "mk-gql",
+  "version": "0.6.0",
   "description": "Bindings for mobx-keystone and GraphQL",
   "authors": [
-    "Michel Weststrate",
-    "G"
+    "Austin Golding"
   ],
   "keywords": [
     "mobx-keystone",
@@ -46,13 +45,8 @@
     }
   },
   "dependencies": {
-    "apollo": "^2.27.0",
-    "arg": "^4.1.3",
     "camelcase": "^6.0.0",
-    "cosmiconfig": "^7.0.0",
     "fast-json-stable-stringify": "^2.1.0",
-    "graphql": "^14.6.0",
-    "graphql-request": "^1.8.2",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
@@ -64,29 +58,46 @@
     "@babel/preset-typescript": "^7.12.7",
     "@babel/register": "^7.12.1",
     "@types/jest": "^26.0.14",
-    "@types/lodash": "^4.14.161",
     "@types/pluralize": "^0.0.29",
-    "@types/react": "^16.9.49",
-    "@types/react-dom": "^16.9.8",
     "@types/throttle-debounce": "^2.1.0",
     "@types/ws": "7.4.0",
+    "arg": "^4.1.3",
+    "cosmiconfig": "^7.0.0",
     "escape-string-regexp": "^4.0.0",
+    "graphql": "^14",
+    "graphql-request": "^3.7.0",
     "graphql-tag": "^2.11.0",
     "husky": "^4.3.0",
     "jest": "^26.4.2",
-    "microbundle": "^0.13.0",
-    "mobx": "^6.3.2",
-    "mobx-keystone": "^0.60.2",
+    "microbundle": "^0.14.1",
+    "mobx": "^6.3.6",
+    "mobx-keystone": "^0.64.0",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "relative-deps": "^1.0.4",
     "tslib": "^2.2.0",
-    "typescript": "^4.2.4"
+    "typescript": "^4.4.4"
+  },
+  "peerDependenciesMeta": {
+    "graphql": {
+      "optional": false
+    },
+    "graphql-request": {
+      "optional": false
+    },
+    "mobx": {
+      "optional": false
+    },
+    "mobx-keystone": {
+      "optional": false
+    }
   },
   "peerDependencies": {
-    "mobx": "^4.0.0 || ^5.0.0",
+    "graphql": "^14",
+    "graphql-request": "^3",
+    "mobx": "^4.0.0 || ^5.0.0 || ^6.0.0",
     "mobx-keystone": "^0.55.0"
   }
 }

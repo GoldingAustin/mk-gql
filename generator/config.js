@@ -1,8 +1,7 @@
-const { existsSync } = require("fs")
 const { resolve } = require("path")
 const { cosmiconfigSync } = require("cosmiconfig")
 
-const explorer = cosmiconfigSync("mst-gql")
+const explorer = cosmiconfigSync("mk-gql")
 
 exports.defaultConfig = {
   excludes: [],

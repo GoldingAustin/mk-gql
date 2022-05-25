@@ -1,14 +1,5 @@
 import camelcase from "camelcase"
-import {
-  Model,
-  prop,
-  objectMap,
-  model,
-  ExtendedModel,
-  modelAction,
-  tProp,
-  types
-} from "mobx-keystone"
+import { AbstractModelClass, ExtendedModel, Model, model, modelAction, objectMap, prop } from "mobx-keystone"
 import pluralize from "pluralize"
 import { deflateHelper } from "./deflateHelper"
 
@@ -100,8 +91,7 @@ export class MKGQLStore extends Model({
   }
 }
 
-// @ts-ignore
-export function createMKGQLStore<T>(
+export function createMKGQLStore<T extends AbstractModelClass<any>>(
   knownTypes: [string, () => any][],
   rootTypes: string[],
   namingConvention?: string

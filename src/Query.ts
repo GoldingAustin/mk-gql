@@ -2,7 +2,7 @@
 import stringify from "fast-json-stable-stringify"
 import { print } from "graphql"
 
-import { action, makeObservable, observable } from "mobx"
+import { action, observable } from "mobx"
 
 export type CaseHandlers<T, R> = {
   loading(): R
@@ -42,12 +42,6 @@ export class Query<T = unknown> implements PromiseLike<T> {
     public options: QueryOptions = {},
     public del: boolean
   ) {
-    makeObservable(this, {
-      loading: observable,
-      data: observable.ref,
-      error: observable
-    })
-
     this.query = typeof query === "string" ? query : print(query)
     this.queryKey = this.query + stringify(variables)
 
