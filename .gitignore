@@ -72,3 +72,10 @@ tmp_schema.json
 
 .DS_Store
 .cache
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
