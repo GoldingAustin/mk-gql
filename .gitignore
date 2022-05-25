@@ -69,7 +69,7 @@ dist
 
 tmp_schema.json
 .awcache
-
+.idea
 .DS_Store
 .cache
 .pnp.*
