@@ -2447,64 +2447,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mk-gql@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "mk-gql@workspace:."
-  dependencies:
-    "@babel/core": ^7.12.9
-    "@babel/plugin-proposal-class-properties": ^7.12.1
-    "@babel/plugin-proposal-decorators": ^7.12.1
-    "@babel/plugin-transform-modules-commonjs": ^7.12.1
-    "@babel/preset-env": ^7.12.7
-    "@babel/preset-typescript": ^7.12.7
-    "@babel/register": ^7.12.1
-    "@types/jest": ^26.0.14
-    "@types/lodash": ^4.14.161
-    "@types/pluralize": ^0.0.29
-    "@types/react": ^16.9.49
-    "@types/react-dom": ^16.9.8
-    "@types/throttle-debounce": ^2.1.0
-    "@types/ws": 7.4.0
-    arg: ^4.1.3
-    camelcase: ^6.0.0
-    cosmiconfig: ^7.0.0
-    escape-string-regexp: ^4.0.0
-    fast-json-stable-stringify: ^2.1.0
-    graphql: ^14
-    graphql-request: ^3.7.0
-    graphql-tag: ^2.11.0
-    husky: ^4.3.0
-    jest: ^26.4.2
-    microbundle: ^0.14.1
-    mobx: ^6.3.6
-    mobx-keystone: ^0.64.0
-    pluralize: ^8.0.0
-    prettier: ^2.1.2
-    pretty-quick: ^3.0.2
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    relative-deps: ^1.0.4
-    tslib: ^2.2.0
-    typescript: ^4.4.4
-  peerDependencies:
-    graphql: ^14
-    graphql-request: ^3
-    mobx: ^4.0.0 || ^5.0.0 || ^6.0.0
-    mobx-keystone: ^0.55.0
-  peerDependenciesMeta:
-    graphql:
-      optional: false
-    graphql-request:
-      optional: false
-    mobx:
-      optional: false
-    mobx-keystone:
-      optional: false
-  bin:
-    mk-gql: ./generator/mk-gql-scaffold.js
-  languageName: unknown
-  linkType: soft
-
 "@mrmlnc/readdir-enhanced@npm:^2.2.1":
   version: 2.2.1
   resolution: "@mrmlnc/readdir-enhanced@npm:2.2.1"
@@ -2800,13 +2742,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.161":
-  version: 4.14.161
-  resolution: "@types/lodash@npm:4.14.161"
-  checksum: 3b03bde2b0cd8282f864951b70698115a8d9534110b12cc1cf85eef9caa2ea51a58ea790b5568a828406935966d3a23834d487a30774ed51a77eac271f7d97e9
-  languageName: node
-  linkType: hard
-
 "@types/minimatch@npm:*, @types/minimatch@npm:^3.0.3":
   version: 3.0.3
   resolution: "@types/minimatch@npm:3.0.3"
@@ -2849,46 +2784,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*":
-  version: 15.7.3
-  resolution: "@types/prop-types@npm:15.7.3"
-  checksum: 41831d53c44c9eeafdaf9762bcb4553c13a3bbf990745ed9065a1cc3581b80633113b53fd49b202bf51731b258da5d0a9aa09c9035d5af7f78b0f6bc273f1325
-  languageName: node
-  linkType: hard
-
 "@types/q@npm:^1.5.1":
   version: 1.5.2
   resolution: "@types/q@npm:1.5.2"
   checksum: 3bb811e0bccfa2bf6a6d366d46bf508739de7338a22bdb8474cbd00a1aa9b5c65210f4ada6a8e9cca50f9340e529719f3b65d7f70dbc972854ebb66728743608
-  languageName: node
-  linkType: hard
-
-"@types/react-dom@npm:^16.9.8":
-  version: 16.9.8
-  resolution: "@types/react-dom@npm:16.9.8"
-  dependencies:
-    "@types/react": "*"
-  checksum: eef9f4ef0c297dd621fc4ab9aa7100ad7d7ccb4a1b8ec04170779b131aa9ea50d76a9ee9cd052cba6ef8389da7e8e8ab718e29fb6662a37d74862794a42094ec
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:*":
-  version: 16.9.33
-  resolution: "@types/react@npm:16.9.33"
-  dependencies:
-    "@types/prop-types": "*"
-    csstype: ^2.2.0
-  checksum: 9501303e0ce5104d341d3c0af987d3b81b064bc797fa792429aabd1fe8b55d59c03c208e415a0b4f375e18dbcc463924afb4139b40057952b40284d6377a3792
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^16.9.49":
-  version: 16.9.49
-  resolution: "@types/react@npm:16.9.49"
-  dependencies:
-    "@types/prop-types": "*"
-    csstype: ^3.0.2
-  checksum: e69493838c7395c2d8af70c307dc2571d603153095d7406a71282352f561c6c50403a32140d41eb1f03bedc0716f55f120d826b3fd621a4e2f0d47a3e55541ff
   languageName: node
   linkType: hard
 
@@ -4357,20 +4256,6 @@ __metadata:
   dependencies:
     cssom: ~0.3.6
   checksum: 5f05e6fd2e3df0b44695c2f08b9ef38b011862b274e320665176467c0725e44a53e341bc4959a41176e83b66064ab786262e7380fd1cabeae6efee0d255bb4e3
-  languageName: node
-  linkType: hard
-
-"csstype@npm:^2.2.0":
-  version: 2.6.10
-  resolution: "csstype@npm:2.6.10"
-  checksum: c2803b8f0b1c6fe935101435e72360afebf4f77044dea22af2e9574c61a51f2ba58c3c211d61b72013964a0ac1a84533e70dc62e6ef4934d391c0a6ca32311eb
-  languageName: node
-  linkType: hard
-
-"csstype@npm:^3.0.2":
-  version: 3.0.3
-  resolution: "csstype@npm:3.0.3"
-  checksum: ae9b4fcd9b596164e6513181ffc1c99e76836610697826d88a03251c87c52e739f19c151c33d624171bf2bc970f1e4dfe3cc9f1492b9cc5a07a5a3b69ee8ebaf
   languageName: node
   linkType: hard
 
@@ -7507,6 +7392,61 @@ fsevents@~2.3.1:
   checksum: 820d5a51fcb7479f2926b97f2c3bb223546bc915e6b3a3eb5d906dda871bba569863595424a76682f2b15718252954644f3891437cb7e3f220949bed54b1750d
   languageName: node
   linkType: hard
+
+"mk-gql@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "mk-gql@workspace:."
+  dependencies:
+    "@babel/core": ^7.12.9
+    "@babel/plugin-proposal-class-properties": ^7.12.1
+    "@babel/plugin-proposal-decorators": ^7.12.1
+    "@babel/plugin-transform-modules-commonjs": ^7.12.1
+    "@babel/preset-env": ^7.12.7
+    "@babel/preset-typescript": ^7.12.7
+    "@babel/register": ^7.12.1
+    "@types/jest": ^26.0.14
+    "@types/pluralize": ^0.0.29
+    "@types/throttle-debounce": ^2.1.0
+    "@types/ws": 7.4.0
+    arg: ^4.1.3
+    camelcase: ^6.0.0
+    cosmiconfig: ^7.0.0
+    escape-string-regexp: ^4.0.0
+    fast-json-stable-stringify: ^2.1.0
+    graphql: ^14
+    graphql-request: ^3.7.0
+    graphql-tag: ^2.11.0
+    husky: ^4.3.0
+    jest: ^26.4.2
+    microbundle: ^0.14.1
+    mobx: ^6.3.6
+    mobx-keystone: ^0.64.0
+    pluralize: ^8.0.0
+    prettier: ^2.1.2
+    pretty-quick: ^3.0.2
+    react: ^17.0.2
+    react-dom: ^17.0.2
+    relative-deps: ^1.0.4
+    tslib: ^2.2.0
+    typescript: ^4.4.4
+  peerDependencies:
+    graphql: ^14
+    graphql-request: ^3
+    mobx: ^4.0.0 || ^5.0.0 || ^6.0.0
+    mobx-keystone: ^0.55.0
+  peerDependenciesMeta:
+    graphql:
+      optional: false
+    graphql-request:
+      optional: false
+    mobx:
+      optional: false
+    mobx-keystone:
+      optional: false
+  bin:
+    mk-gql: ./generator/mk-gql-scaffold.js
+  languageName: unknown
+  linkType: soft
 
 "mkdirp@npm:^1.0.3, mkdirp@npm:^1.0.4":
   version: 1.0.4
