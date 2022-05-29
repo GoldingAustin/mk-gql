@@ -2,25 +2,21 @@ import path from "path"
 
 import fs from "fs"
 
-import { buildSchema, graphqlSync, introspectionQuery } from "graphql"
+import { buildSchema } from "graphql"
 
 import camelcase from "camelcase"
 
 import pluralize from "pluralize"
 
 import escapeStringRegexp from "escape-string-regexp"
-import { ValueNode } from "graphql/language/ast"
 import {
   IntrospectionField,
   IntrospectionInputObjectType,
-  IntrospectionInterfaceType,
   IntrospectionNamedTypeRef,
-  IntrospectionNonNullTypeRef,
   IntrospectionObjectType,
-  IntrospectionType,
   IntrospectionTypeRef,
-  IntrospectionUnionType
-} from "graphql/utilities/introspectionQuery"
+  introspectionFromSchema
+} from "graphql"
 import { MkGqlScaffoldInput } from "./mk-gql-scaffold"
 
 const reservedGraphqlNames = ["Mutation", "CacheControlScope", "Query", "Subscription"]
@@ -365,8 +361,11 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         case "OBJECT":
           return result(handleObjectFieldType(fieldName, fieldType, isNested))
         case "LIST":
-          const listTypes = result(handleFieldType(fieldName, fieldType.ofType, true))
-          return `${listTypes.includes("|") ? `(${listTypes})` : listTypes}[]`
+          const listTypes = result(
+            handleFieldType(fieldName, fieldType.ofType, true),
+            fieldType.ofType.kind === "NON_NULL"
+          )
+          return `${listTypes.includes("|") ? `(${listTypes})` : listTypes}[]${isNullable ? " | null" : ""}`
         case "ENUM":
           primitiveFields.push(fieldName)
           const enumType = fieldType.name
@@ -914,7 +913,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
         typeValue = "any"
     }
 
-    return `${name}${canBeUndefined || fromUndefineableList ? "?" : ""}: ${typeValue}${canBeUndefined ? " | null" : ""}`
+    return `${name}${canBeUndefined || fromUndefineableList ? "?" : ""}: ${typeValue}`
   }
 
   function printTsPrimitiveType(primitiveType) {
@@ -1147,10 +1146,9 @@ function scaffold(
   }
 ) {
   const schema = buildSchema(definition)
-  const res = graphqlSync(schema, introspectionQuery)
-  if (!res.data) throw new Error("graphql parse error:\n\n" + JSON.stringify(res, null, 2))
+  const intro = introspectionFromSchema(schema)
   return generate(
-    res.data.__schema,
+    intro.__schema,
     "ts",
     options.roots || [],
     options.excludes || [],
@@ -1231,12 +1229,10 @@ function transformRootName(text, namingConvention) {
  * @param namingConvention
  */
 function transformTypes(types, namingConvention) {
-  //console.log(JSON.stringify(types, null, 2));
   types
     .filter((type) => !type.name.startsWith("__"))
     .filter((type) => type.kind !== "SCALAR")
     .forEach((type) => transformType(type, namingConvention))
-  //console.log(JSON.stringify(types, null, 2));
 }
 
 /**

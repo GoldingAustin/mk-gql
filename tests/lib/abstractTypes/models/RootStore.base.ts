@@ -6,12 +6,12 @@ import { types, prop, tProp, Ref, Model, modelAction, objectMap, detach, model, 
 import { MKGQLStore, createMKGQLStore, QueryOptions } from "mk-gql"
 import { MergeHelper } from './mergeHelper';
 
-import { SearchResultModel, searchResultModelPrimitives, SearchResultModelSelector  } from "./SearchResultModel"
 import { MovieModel, movieModelPrimitives, MovieModelSelector  } from "./MovieModel"
 import { BookModel, bookModelPrimitives, BookModelSelector  } from "./BookModel"
-import { RepoModel, repoModelPrimitives, RepoModelSelector  } from "./RepoModel"
+import { SearchResultModel, searchResultModelPrimitives, SearchResultModelSelector  } from "./SearchResultModel"
 import { UserModel, userModelPrimitives, UserModelSelector  } from "./UserModel"
 import { OrganizationModel, organizationModelPrimitives, OrganizationModelSelector  } from "./OrganizationModel"
+import { RepoModel, repoModelPrimitives, RepoModelSelector  } from "./RepoModel"
 
 import { searchItemModelPrimitives , SearchItemUnion } from "./SearchItemModelSelector"
 import { ownerModelPrimitives , OwnerUnion } from "./OwnerModelSelector"
@@ -40,13 +40,13 @@ mutateAddRepo="mutateAddRepo"
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
-export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([['SearchResult', () => SearchResultModel], ['Movie', () => MovieModel], ['Book', () => BookModel], ['Repo', () => RepoModel], ['User', () => UserModel], ['Organization', () => OrganizationModel]], ['SearchResult', 'Repo'] , "js"),{
+export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([['Movie', () => MovieModel], ['Book', () => BookModel], ['SearchResult', () => SearchResultModel], ['User', () => UserModel], ['Organization', () => OrganizationModel], ['Repo', () => RepoModel]], ['SearchResult', 'Repo'] , "js"),{
     searchResults: prop(() => objectMap<SearchResultModel>()),
     repos: prop(() => objectMap<RepoModel>()), 
     mergeHelper: prop<MergeHelper>(() => new MergeHelper({}))
   }) {
   
-    @modelAction querySearch(variables: { text: string  }, resultSelector: string | ((qb: typeof SearchResultModelSelector) => typeof SearchResultModelSelector) = searchResultModelPrimitives.toString() , options: QueryOptions = {}, clean?: boolean) {
+    @modelAction querySearch(variables: { text: string }, resultSelector: string | ((qb: typeof SearchResultModelSelector) => typeof SearchResultModelSelector) = searchResultModelPrimitives.toString() , options: QueryOptions = {}, clean?: boolean) {
       return this.query<{ search: SearchResultModel}>(`query search($text: String!) { search(text: $text) {
         ${typeof resultSelector === "function" ? resultSelector(SearchResultModelSelector).toString() : resultSelector}
       } }`, variables, options, !!clean)
@@ -56,7 +56,7 @@ export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelC
         ${typeof resultSelector === "function" ? resultSelector(RepoModelSelector).toString() : resultSelector}
       } }`, variables, options, !!clean)
     }
-    @modelAction mutateAddRepo(variables: { name: string , ownerName: string , avatar?: string | null, logo?: string | null }, resultSelector: string | ((qb: typeof RepoModelSelector) => typeof RepoModelSelector) = repoModelPrimitives.toString() , optimisticUpdate?: () => void) {
+    @modelAction mutateAddRepo(variables: { name: string, ownerName: string, avatar?: string, logo?: string }, resultSelector: string | ((qb: typeof RepoModelSelector) => typeof RepoModelSelector) = repoModelPrimitives.toString() , optimisticUpdate?: () => void) {
       return this.mutate<{ addRepo: RepoModel}>(`mutation addRepo($name: String!, $ownerName: String!, $avatar: String, $logo: String) { addRepo(name: $name, ownerName: $ownerName, avatar: $avatar, logo: $logo) {
         ${typeof resultSelector === "function" ? resultSelector(RepoModelSelector).toString() : resultSelector}
       } }`, variables, optimisticUpdate)

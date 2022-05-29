@@ -41,7 +41,7 @@ export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelC
         ${typeof resultSelector === "function" ? resultSelector(TodoModelSelector).toString() : resultSelector}
       } }`, variables, options, !!clean)
     }
-    @modelAction mutateToggleTodo(variables: { id: string | number  }, resultSelector: string | ((qb: typeof TodoModelSelector) => typeof TodoModelSelector) = todoModelPrimitives.toString() , optimisticUpdate?: () => void) {
+    @modelAction mutateToggleTodo(variables: { id: string | number }, resultSelector: string | ((qb: typeof TodoModelSelector) => typeof TodoModelSelector) = todoModelPrimitives.toString() , optimisticUpdate?: () => void) {
       return this.mutate<{ toggleTodo: TodoModel}>(`mutation toggleTodo($id: ID!) { toggleTodo(id: $id) {
         ${typeof resultSelector === "function" ? resultSelector(TodoModelSelector).toString() : resultSelector}
       } }`, variables, optimisticUpdate)

@@ -18,7 +18,7 @@ import { UserModel } from "./UserModel"
 export class RepoModelBase extends Model({
     __typename: tProp("Repo"),
         id:prop<string | number>().withSetter(),
-    owner:prop<(UserModel | OrganizationModel) | null>().withSetter(),
+    owner:prop<UserModel | OrganizationModel | null>().withSetter(),
   }) {
     getRefId() {
       return String(this.id)

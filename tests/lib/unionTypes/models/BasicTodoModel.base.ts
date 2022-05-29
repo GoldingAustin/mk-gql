@@ -14,7 +14,7 @@ import { QueryBuilder } from "mk-gql"
  */
 export class BasicTodoModelBase extends Model({
     __typename: tProp("BasicTodo"),
-        id:prop<string | number>().withSetter(),
+        id:prop<string | number | null>().withSetter(),
     text:prop<string | null>().withSetter(),
     complete:prop<boolean | null>().withSetter(),
   }) {

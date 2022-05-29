@@ -18,7 +18,7 @@ import { TodoModelSelector } from "./TodoModelSelector"
 export class TodoListModelBase extends Model({
     __typename: tProp("TodoList"),
         id:prop<string | number>().withSetter(),
-    todos:prop<(Ref<BasicTodoModel> | Ref<FancyTodoModel>)[] | null>().withSetter(),
+    todos:prop<(Ref<BasicTodoModel> | Ref<FancyTodoModel>)[]>(() => []).withSetter(),
   }) {
     getRefId() {
       return String(this.id)

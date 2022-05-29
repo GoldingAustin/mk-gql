@@ -96,7 +96,7 @@ type query_root {
     expect(
       hasFileContent(
         findFile(output, "RootStore.base"),
-        `[['query_root', () => QueryRootModel], ['my_user', () => MyUserModel], ['possibly_empty_box', () => PossiblyEmptyBoxModel]], ['my_user', 'possibly_empty_box']`
+        `[['my_user', () => MyUserModel], ['possibly_empty_box', () => PossiblyEmptyBoxModel], ['query_root', () => QueryRootModel]], ['my_user', 'possibly_empty_box']`
       )
     ).toBeTruthy()
   })

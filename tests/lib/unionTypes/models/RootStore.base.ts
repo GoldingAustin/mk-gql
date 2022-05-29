@@ -6,9 +6,9 @@ import { types, prop, tProp, Ref, Model, modelAction, objectMap, detach, model, 
 import { MKGQLStore, createMKGQLStore, QueryOptions } from "mk-gql"
 import { MergeHelper } from './mergeHelper';
 
-import { TodoListModel, todoListModelPrimitives, TodoListModelSelector  } from "./TodoListModel"
 import { BasicTodoModel, basicTodoModelPrimitives, BasicTodoModelSelector  } from "./BasicTodoModel"
 import { FancyTodoModel, fancyTodoModelPrimitives, FancyTodoModelSelector  } from "./FancyTodoModel"
+import { TodoListModel, todoListModelPrimitives, TodoListModelSelector  } from "./TodoListModel"
 
 import { todoModelPrimitives , TodoUnion } from "./TodoModelSelector"
 
@@ -34,7 +34,7 @@ queryTodoLists="queryTodoLists"
 /**
 * Store, managing, among others, all the objects received through graphQL
 */
-export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([['TodoList', () => TodoListModel], ['BasicTodo', () => BasicTodoModel], ['FancyTodo', () => FancyTodoModel]], ['TodoList', 'BasicTodo', 'FancyTodo'] , "js"),{
+export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([['BasicTodo', () => BasicTodoModel], ['FancyTodo', () => FancyTodoModel], ['TodoList', () => TodoListModel]], ['TodoList', 'BasicTodo', 'FancyTodo'] , "js"),{
     todoLists: prop(() => objectMap<TodoListModel>()),
     basicTodos: prop(() => objectMap<BasicTodoModel>()),
     fancyTodos: prop(() => objectMap<FancyTodoModel>()), 

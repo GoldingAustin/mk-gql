@@ -14,7 +14,7 @@ import { QueryBuilder } from "mk-gql"
  */
 export class FancyTodoModelBase extends Model({
     __typename: tProp("FancyTodo"),
-        id:prop<string | number>().withSetter(),
+        id:prop<string | number | null>().withSetter(),
     label:prop<string | null>().withSetter(),
     color:prop<string | null>().withSetter(),
     complete:prop<boolean | null>().withSetter(),

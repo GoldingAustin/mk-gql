@@ -2,13 +2,13 @@
 /* eslint-disable */
 /* tslint:disable */
 
-export * from "./SearchResultModel"
-export * from "./SearchItemModelSelector"
 export * from "./MovieModel"
 export * from "./BookModel"
-export * from "./RepoModel"
+export * from "./SearchItemModelSelector"
+export * from "./SearchResultModel"
 export * from "./OwnerModelSelector"
 export * from "./UserModel"
 export * from "./OrganizationModel"
+export * from "./RepoModel"
 export * from "./RootStore"
 export * from "./RootStore.base"

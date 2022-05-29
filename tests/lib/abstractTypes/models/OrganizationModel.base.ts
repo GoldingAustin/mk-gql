@@ -15,8 +15,8 @@ import { QueryBuilder } from "mk-gql"
 export class OrganizationModelBase extends Model({
     __typename: tProp("Organization"),
         id:prop<string | number>().withSetter(),
-    name:prop<string | null>().withSetter(),
-    logo:prop<string | null>().withSetter(),
+    name:prop<string>().withSetter(),
+    logo:prop<string>().withSetter(),
   }) {
     getRefId() {
       return String(this.id)

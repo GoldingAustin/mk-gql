@@ -1,6 +1,6 @@
 {
   "name": "mk-gql",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Bindings for mobx-keystone and GraphQL",
   "authors": [
     "Austin Golding"
@@ -15,15 +15,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/kibeo/mk-gql#readme",
+  "homepage": "https://github.com/GoldingAustin/mk-gql#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kibeo/mk-gql.git"
+    "url": "git+https://github.com/GoldingAustin/mk-gql.git"
   },
   "bugs": {
-    "url": "https://github.com/kibeo/mk-gql/issues"
+    "url": "https://github.com/GoldingAustin/mk-gql/issues"
   },
   "license": "MIT",
+  "readme": "README.md",
   "main": "dist/mk-gql.js",
   "source": "core/src/mk-gql.ts",
   "umd:main": "dist/mk-gql.umd.js",
@@ -39,7 +40,7 @@
   "scripts": {
     "test": "jest test",
     "build": "microbundle -i ./packages/core/src/mk-gql.ts --tsconfig ./tsconfig.build.json --compress --external mobx,mobx-keystone,graphql,graphql-request && yarn workspace generator run build",
-    "format": "prettier --write '**/*'"
+    "format": "prettier --write './**/*.(ts|json)'"
   },
   "husky": {
     "hooks": {
@@ -59,7 +60,6 @@
     "@babel/preset-env": "7.12.17",
     "@babel/preset-typescript": "7.12.17",
     "@babel/register": "7.12.13",
-    "@types/graphql": "^14.5.0",
     "@types/jest": "^27.5.1",
     "@types/pluralize": "^0.0.29",
     "@types/throttle-debounce": "^2.1.0",
@@ -67,17 +67,22 @@
     "arg": "^4.1.3",
     "cosmiconfig": "^7.0.1",
     "escape-string-regexp": "^4.0.0",
-    "graphql": "^14",
+    "get-them-args": "^1.3.2",
+    "graphql": "^16.5.0",
     "graphql-request": "^4.2.0",
     "graphql-tag": "^2.12.6",
     "husky": "^8.0.1",
+    "is-installed": "^2.0.1",
     "jest": "^28.1.0",
+    "latest-version": "^6.0.0",
     "microbundle": "^0.15.0",
     "mobx": "^6.6.0",
     "mobx-keystone": "^0.68.6",
     "prettier": "^2.6.2",
     "pretty-quick": "^3.1.3",
+    "read-pkg-up": "^9.1.0",
     "relative-deps": "^1.0.7",
+    "shell-exec": "^1.1.2",
     "ts-jest": "^28.0.3",
     "tslib": "^2.4.0",
     "typescript": "^4.7.2"
@@ -97,7 +102,7 @@
     }
   },
   "peerDependencies": {
-    "graphql": "^14",
+    "graphql": "^15 || ^16",
     "graphql-request": "^3",
     "mobx": "^4.0.0 || ^5.0.0 || ^6.0.0",
     "mobx-keystone": "^0"

@@ -14,9 +14,9 @@ import { QueryBuilder } from "mk-gql"
  */
 export class TodoModelBase extends Model({
     __typename: tProp("Todo"),
-        id:prop<string | number>().withSetter(),
-    text:prop<string | null>().withSetter(),
-    complete:prop<boolean | null>().withSetter(),
+        id:prop<string | number | null>().withSetter(),
+    text:prop<string>().withSetter(),
+    complete:prop<boolean>().withSetter(),
   }) {
     getRefId() {
       return String(this.id)

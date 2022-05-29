@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import arg from "arg"
 
-import { buildSchema, graphqlSync, introspectionQuery } from "graphql"
+import { buildSchema, graphqlSync, introspectionFromSchema } from "graphql"
 
 import { getConfig, mergeConfigs } from "./config"
 
@@ -77,8 +77,8 @@ function main() {
     // Tnx https://blog.apollographql.com/three-ways-to-represent-your-graphql-schema-a41f4175100d!
     const text = fs.readFileSync(input, "utf8")
     const schema = buildSchema(text)
-    const res = graphqlSync(schema, introspectionQuery)
-    if (res.data) json = res.data
+    const res = introspectionFromSchema(schema)
+    if (res) json = res
     else {
       console.error("graphql parse error:\n\n" + JSON.stringify(res, null, 2))
       process.exit(1)

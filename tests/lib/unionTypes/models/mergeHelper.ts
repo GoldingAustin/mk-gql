@@ -46,7 +46,7 @@ export class MergeHelper extends Model({}) {
     }
     let { __typename, id, ...rest } = data
 
-    // convert values deeply first to MST objects as much as possible
+    // convert values deeply first to mobx-keystone objects as much as possible
     let snapshot: any
     const typeDef = store.getTypeDef(__typename)
     if (id && __typename) {
