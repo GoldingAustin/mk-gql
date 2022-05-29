@@ -14,8 +14,8 @@ import { QueryBuilder } from "mk-gql"
  */
 export class BookModelBase extends Model({
     __typename: tProp("Book"),
-        description:prop<string | null>().withSetter(),
-    author:prop<string | null>().withSetter(),
+        description:prop<string>().withSetter(),
+    author:prop<string>().withSetter(),
   }) {
     
   }

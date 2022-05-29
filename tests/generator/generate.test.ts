@@ -595,4 +595,43 @@ type HelloResult {
 
     expect(hasFileContent(findFile(output, "RootStore.base"), "user_id: string")).toBeTruthy()
   })
+
+  test("Should handle nested primitives nullability", () => {
+    const output = scaffold(
+      `
+      type Todo {
+        id: ID
+      }
+type User {
+  id: ID
+  name: String!
+  avatar: String!
+  
+  optionalTodos: [Todo]
+  todos: [Todo]!
+  requiredTodos: [Todo!]!
+  optionalAliases: [String]
+  aliases: [String]!
+  requiredAliases: [String!]!
+}
+type Query {
+  me: User
+}
+`,
+      {
+        roots: ["User"],
+        namingConvention: "js"
+      }
+    )
+    expect(
+      hasFileContent(findFile(output, "UserModel.base"), "optionalAliases:prop<(string | null)[] | null>")
+    ).toBeTruthy()
+    expect(hasFileContent(findFile(output, "UserModel.base"), "aliases:prop<(string | null)[]>")).toBeTruthy()
+    expect(hasFileContent(findFile(output, "UserModel.base"), "requiredAliases:prop<string[]>")).toBeTruthy()
+    expect(hasFileContent(findFile(output, "UserModel.base"), "todos:prop<(TodoModel | null)[]>")).toBeTruthy()
+    expect(
+      hasFileContent(findFile(output, "UserModel.base"), "optionalTodos:prop<(TodoModel | null)[] | null>")
+    ).toBeTruthy()
+    expect(hasFileContent(findFile(output, "UserModel.base"), "requiredTodos:prop<TodoModel[]>")).toBeTruthy()
+  })
 })

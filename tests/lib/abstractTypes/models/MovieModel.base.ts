@@ -14,8 +14,8 @@ import { QueryBuilder } from "mk-gql"
  */
 export class MovieModelBase extends Model({
     __typename: tProp("Movie"),
-        description:prop<string | null>().withSetter(),
-    director:prop<string | null>().withSetter(),
+        description:prop<string>().withSetter(),
+    director:prop<string>().withSetter(),
   }) {
     
   }

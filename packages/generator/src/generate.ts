@@ -361,10 +361,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         case "OBJECT":
           return result(handleObjectFieldType(fieldName, fieldType, isNested))
         case "LIST":
-          const listTypes = result(
-            handleFieldType(fieldName, fieldType.ofType, true),
-            fieldType.ofType.kind === "NON_NULL"
-          )
+          const listTypes = result(handleFieldType(fieldName, fieldType.ofType, true), true)
           return `${listTypes.includes("|") ? `(${listTypes})` : listTypes}[]${isNullable ? " | null" : ""}`
         case "ENUM":
           primitiveFields.push(fieldName)

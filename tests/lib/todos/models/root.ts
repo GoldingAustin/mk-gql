@@ -4,4 +4,4 @@
 
 export * from "./TodoModel"
 export * from "./RootStore"
-export * from "./RootStore.base"
+export * from "./RootStore.base";

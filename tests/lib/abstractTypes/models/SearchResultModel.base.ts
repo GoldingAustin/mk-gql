@@ -18,7 +18,7 @@ import { SearchItemModelSelector } from "./SearchItemModelSelector"
 export class SearchResultModelBase extends Model({
     __typename: tProp("SearchResult"),
         inputQuery:prop<string>().withSetter(),
-    items:prop<(MovieModel | BookModel)[]>(() => []).withSetter(),
+    items:prop<(MovieModel | BookModel | null)[]>(() => []).withSetter(),
   }) {
     
   }

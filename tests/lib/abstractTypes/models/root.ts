@@ -11,4 +11,4 @@ export * from "./UserModel"
 export * from "./OrganizationModel"
 export * from "./RepoModel"
 export * from "./RootStore"
-export * from "./RootStore.base"
+export * from "./RootStore.base";
