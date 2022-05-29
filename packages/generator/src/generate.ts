@@ -606,7 +606,7 @@ import { rootRefs } from './RootStore.base';
 export class MergeHelper extends Model({}) {
   @modelAction mergeAll(data: any, del: boolean) {
     const store = findParent<any>(this, (n) => n instanceof RootStore);
-    const items = this.merge(toJS(data.data), false, 0, store);
+    const items = this.merge(toJS(data), false, 0, store);
     if (del) {
       const key = Object.keys(items)[0];
       const parsedItems = items[key];

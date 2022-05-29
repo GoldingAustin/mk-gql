@@ -3838,21 +3838,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001038":
-  version: 1.0.30001040
-  resolution: "caniuse-lite@npm:1.0.30001040"
-  checksum: 642e39e1a42dd8db72f146ceb297ab8fc75f74677d81f0da960350d3be97e8b2ba0088e3da818786aa49b90090f79c362379c33d579bec9a5d9e840e3a719640
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001181":
-  version: 1.0.30001194
-  resolution: "caniuse-lite@npm:1.0.30001194"
-  checksum: f1aeaeba059c0505a1c40386c4c46f575d22ad294f21981c7b9f97a2fe0596963fbdb47906793a8ea4d19d9c27bbb240a980ccfcdb9788bb377ab5bb4b003e0e
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001332":
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001038, caniuse-lite@npm:^1.0.30001181, caniuse-lite@npm:^1.0.30001332":
   version: 1.0.30001344
   resolution: "caniuse-lite@npm:1.0.30001344"
   checksum: 9dba66f796dc98632dced4c5d487d0fad219e137a27c634eec68520f2e598a613e3371b9207e15a078689a629128eca898793e37fc98841821ab481bddad51b9
@@ -7517,7 +7503,7 @@ __metadata:
     tslib: ^2.4.0
     typescript: ^4.7.2
   peerDependencies:
-    graphql: ^14
+    graphql: ^15 || ^16
     graphql-request: ^3
     mobx: ^4.0.0 || ^5.0.0 || ^6.0.0
     mobx-keystone: ^0
