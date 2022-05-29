@@ -3,10 +3,7 @@
     "baseUrl": ".",
     "target": "es6",
     "module": "ES2020",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "declaration": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,14 +12,11 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "experimentalDecorators": true,
-     "emitDecoratorMetadata": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "mk-gql": ["./packages/core/src/mk-gql.ts"]
     }
   },
-  "include": [
-    "tests/**/*.test.ts",
-    "packages/generator/**/*.ts"
-  ],
+  "include": ["tests/**/*.test.ts", "packages/generator/**/*.ts"],
   "files": ["./packages/core/src/mk-gql.ts"]
 }

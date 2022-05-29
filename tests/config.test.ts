@@ -2,8 +2,6 @@
 
 import { defaultConfig, mergeConfigs } from "../packages/generator/src/config"
 
-
-
 const testArgsWithoutHeader = {
   _: ["file_input"],
   "--format": undefined,
@@ -62,9 +60,7 @@ test("config is used for header", () => {
 test("config is used for multiple headers", () => {
   const results = mergeConfigs(testArgsWithoutHeader, testConfigMultipleHeaders)
 
-  expect(results.header).toBe(
-    "x-hasura-admin-secret:supersecret --header=x-hasura-role:superuser"
-  )
+  expect(results.header).toBe("x-hasura-admin-secret:supersecret --header=x-hasura-role:superuser")
 })
 
 test("fieldOverrides outputs items with valid signature", () => {

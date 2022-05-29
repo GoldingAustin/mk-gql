@@ -7,4 +7,4 @@ export * from "./TodoModelSelector"
 export * from "./BasicTodoModel"
 export * from "./FancyTodoModel"
 export * from "./RootStore"
-export * from "./RootStore.base";
+export * from "./RootStore.base"

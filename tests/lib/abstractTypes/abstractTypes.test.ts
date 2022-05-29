@@ -4,10 +4,8 @@ import fs from "fs"
 import path from "path"
 import { buildSchema, parse } from "graphql"
 import { validate } from "graphql/validation"
-import * as models from "./models/root";
-const schemaContents = fs
-  .readFileSync(path.resolve(__dirname, "schema.graphql"))
-  .toString()
+import * as models from "./models/root"
+const schemaContents = fs.readFileSync(path.resolve(__dirname, "schema.graphql")).toString()
 const schema = buildSchema(schemaContents)
 
 const validateQuery = (queryString) => {
@@ -19,9 +17,9 @@ const validateQuery = (queryString) => {
 }
 
 describe("Abstract types tests", () => {
-  let mockResponses;
-  let mockClient;
-  let store: models.RootStore;
+  let mockResponses
+  let mockClient
+  let store: models.RootStore
 
   beforeEach(() => {
     mockResponses = []
@@ -31,9 +29,9 @@ describe("Abstract types tests", () => {
       }
     }
 
-    store = new models.RootStore({});
-    store.gqlHttpClient = mockClient;
-    store.ssr = true;
+    store = new models.RootStore({})
+    store.gqlHttpClient = mockClient
+    store.ssr = true
   })
 
   test("as a lib user i want to query union field types", async () => {
@@ -74,10 +72,10 @@ describe("Abstract types tests", () => {
     expect(items).toHaveLength(2)
 
     const movie = items?.[0]
-    expect(movie && 'director' in movie ? movie?.director : undefined).toBe("Steven Spielberg")
+    expect(movie && "director" in movie ? movie?.director : undefined).toBe("Steven Spielberg")
 
     const book = items?.[1]
-    expect(book && 'author' in book ? book?.author : undefined).toBe("Ernest Hemingway")
+    expect(book && "author" in book ? book?.author : undefined).toBe("Ernest Hemingway")
   })
 
   test("as a lib user i want to query interface field types", async () => {
@@ -112,10 +110,7 @@ describe("Abstract types tests", () => {
     mockResponses = [mockRepoQuery]
 
     const { repoModelPrimitives, ownerModelPrimitives } = models
-    await store.queryGetAllRepos(
-      {},
-      repoModelPrimitives.owner(ownerModelPrimitives).toString()
-    )
+    await store.queryGetAllRepos({}, repoModelPrimitives.owner(ownerModelPrimitives).toString())
 
     const repos = store.repos
     expect(repos.size).toBe(2)
@@ -171,11 +166,7 @@ describe("Abstract types tests", () => {
       }
     }
 
-    mockResponses = [
-      mockAddRepoMutation,
-      mockAddRepoMutation,
-      mockGetReposQuery
-    ]
+    mockResponses = [mockAddRepoMutation, mockAddRepoMutation, mockGetReposQuery]
 
     await store.mutateAddRepo({
       name: "Repo 1",
@@ -189,10 +180,7 @@ describe("Abstract types tests", () => {
     })
 
     const { repoModelPrimitives, ownerModelPrimitives } = models
-    await store.queryGetAllRepos(
-      {},
-      repoModelPrimitives.owner(ownerModelPrimitives).toString()
-    )
+    await store.queryGetAllRepos({}, repoModelPrimitives.owner(ownerModelPrimitives).toString())
 
     const repos = store.repos
     expect(repos.size).toBe(2)

@@ -13,8 +13,6 @@ import child_process from "child_process"
 
 import { generate, logUnexpectedFiles, writeFiles } from "./generate"
 
-
-
 const definition = {
   "--outDir": String,
   "--roots": String,
@@ -29,16 +27,16 @@ const definition = {
 }
 
 export interface MkGqlScaffoldInput {
-  outDir?: string;
-  roots?: string[];
-  excludes?: string[];
-  modelsOnly?: boolean;
-  force?: boolean;
-  separate?: boolean;
-  dontRenameModels?: boolean;
-  namingConvention?: string;
-  header?: string;
-  fieldOverrides?: [string, string, string][];
+  outDir?: string
+  roots?: string[]
+  excludes?: string[]
+  modelsOnly?: boolean
+  force?: boolean
+  separate?: boolean
+  dontRenameModels?: boolean
+  namingConvention?: string
+  header?: string
+  fieldOverrides?: [string, string, string][]
 }
 
 function main() {
@@ -55,17 +53,8 @@ function main() {
     throw e
   }
 
-  const {
-    outDir,
-    input,
-    roots,
-    excludes,
-    modelsOnly,
-    forceAll,
-    namingConvention,
-    header,
-    fieldOverrides
-  } = mergeConfigs(args, config)
+  const { outDir, input, roots, excludes, modelsOnly, forceAll, namingConvention, header, fieldOverrides } =
+    mergeConfigs(args, config)
   const separate = !!args["--separate"]
 
   console.log(path.basename(__filename) + " --outDir=" + outDir + " " + input)
@@ -95,16 +84,11 @@ function main() {
       process.exit(1)
     }
   } else {
-    console.error(
-      "Expected json, graphql or url as input parameter, got: " + input
-    )
+    console.error("Expected json, graphql or url as input parameter, got: " + input)
     process.exit(1)
   }
 
-  console.log(
-    "Detected types: \n" +
-      json.__schema.types.map((t) => `  - [${t.kind}] ${t.name}`).join("\n")
-  )
+  console.log("Detected types: \n" + json.__schema.types.map((t) => `  - [${t.kind}] ${t.name}`).join("\n"))
 
   // console.log(JSON.stringify(json, null, 2))
   const files = generate(

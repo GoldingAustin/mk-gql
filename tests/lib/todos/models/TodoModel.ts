@@ -7,9 +7,9 @@ export { selectFromTodo, todoModelPrimitives, TodoModelSelector } from "./TodoMo
 /**
  * TodoModel
  */
-@model('Todo')
+@model("Todo")
 export class TodoModel extends ExtendedModel(TodoModelBase, {}) {
   @modelAction toggle() {
-    this.complete = !this.complete;
+    this.complete = !this.complete
   }
 }

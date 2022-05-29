@@ -7,5 +7,5 @@ export { selectFromBasicTodo, basicTodoModelPrimitives, BasicTodoModelSelector }
 /**
  * BasicTodoModel
  */
-@model('BasicTodo')
+@model("BasicTodo")
 export class BasicTodoModel extends ExtendedModel(BasicTodoModelBase, {}) {}

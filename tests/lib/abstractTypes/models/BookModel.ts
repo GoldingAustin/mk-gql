@@ -7,5 +7,5 @@ export { selectFromBook, bookModelPrimitives, BookModelSelector } from "./BookMo
 /**
  * BookModel
  */
-@model('Book')
+@model("Book")
 export class BookModel extends ExtendedModel(BookModelBase, {}) {}

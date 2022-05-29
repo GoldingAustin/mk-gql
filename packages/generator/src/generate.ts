@@ -4,7 +4,6 @@ import fs from "fs"
 
 import { buildSchema, graphqlSync, introspectionQuery } from "graphql"
 
-
 import camelcase from "camelcase"
 
 import pluralize from "pluralize"
@@ -12,21 +11,19 @@ import pluralize from "pluralize"
 import escapeStringRegexp from "escape-string-regexp"
 import { ValueNode } from "graphql/language/ast"
 import {
-  IntrospectionField, IntrospectionInputObjectType,
+  IntrospectionField,
+  IntrospectionInputObjectType,
   IntrospectionInterfaceType,
   IntrospectionNamedTypeRef,
-  IntrospectionNonNullTypeRef, IntrospectionObjectType,
+  IntrospectionNonNullTypeRef,
+  IntrospectionObjectType,
   IntrospectionType,
-  IntrospectionTypeRef, IntrospectionUnionType
+  IntrospectionTypeRef,
+  IntrospectionUnionType
 } from "graphql/utilities/introspectionQuery"
 import { MkGqlScaffoldInput } from "./mk-gql-scaffold"
 
-const reservedGraphqlNames = [
-  "Mutation",
-  "CacheControlScope",
-  "Query",
-  "Subscription"
-]
+const reservedGraphqlNames = ["Mutation", "CacheControlScope", "Query", "Subscription"]
 
 function generate(
   schema,
@@ -97,13 +94,9 @@ function generate(
     rootTypes.forEach((type) => {
       if (!origObjectTypes.includes(type)) {
         if (isTypeReservedName(type)) {
-          throw new Error(
-            `Cannot generate ${type}Model, ${type} is a graphql reserved name`
-          )
+          throw new Error(`Cannot generate ${type}Model, ${type} is a graphql reserved name`)
         }
-        throw new Error(
-          `The root type specified: '${type}' is unknown, excluded or not an OBJECT type!`
-        )
+        throw new Error(`The root type specified: '${type}' is unknown, excluded or not an OBJECT type!`)
       }
     })
 
@@ -201,20 +194,12 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
   }
 
   function handleObjectType(type) {
-    const {
-      primitiveFields,
-      nonPrimitiveFields,
-      imports,
-      typeImports,
-      modelProperties,
-      refs
-    } = resolveFieldsAndImports(type)
+    const { primitiveFields, nonPrimitiveFields, imports, typeImports, modelProperties, refs } =
+      resolveFieldsAndImports(type)
     const { name, origName } = type
     const flowerName = toFirstLower(name)
 
-    const entryFile = `${ifTS(
-      'import { ExtendedModel, model } from "mobx-keystone"\n'
-    )}\
+    const entryFile = `${ifTS('import { ExtendedModel, model } from "mobx-keystone"\n')}\
 import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
@@ -237,11 +222,7 @@ export class ${name}Model extends ExtendedModel(${name}ModelBase, {}) {}
     const modelFile = `\
 ${header}
 
-${
-  useTypedRefs && hasNestedRefs
-    ? `import type { IObservableArray } from "mobx"\n`
-    : ""
-}\
+${useTypedRefs && hasNestedRefs ? `import type { IObservableArray } from "mobx"\n` : ""}\
 import { types, prop, tProp, Model, Ref, idProp } from "mobx-keystone"
 import { QueryBuilder } from "mk-gql"
 ${printRelativeImports(typeImports, true)}
@@ -252,9 +233,7 @@ ${
 type Refs = {
 ${refs
   .map(([fieldName, fieldTypeName, isNested]) =>
-    isNested
-      ? `  ${fieldName}: IObservableArray<${fieldTypeName}Model>;`
-      : `  ${fieldName}: ${fieldTypeName}Model;`
+    isNested ? `  ${fieldName}: IObservableArray<${fieldTypeName}Model>;` : `  ${fieldName}: ${fieldTypeName}Model;`
   )
   .join("\n")}
 }\n
@@ -263,10 +242,7 @@ ${refs
 }\
 /**
  * ${name}Base
- * auto generated base class for the model ${name}Model.${optPrefix(
-      "\n *\n * ",
-      sanitizeComment(type.description)
-    )}
+ * auto generated base class for the model ${name}Model.${optPrefix("\n *\n * ", sanitizeComment(type.description))}
  */
 export class ${name}ModelBase extends Model({
     __typename: tProp("${origName}"),
@@ -295,14 +271,9 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     if (modelsOnly) return
 
     const interfaceOrUnionType = interfaceAndUnionTypes.get(type.name)
-    const isUnion =
-      interfaceOrUnionType && interfaceOrUnionType.kind === "UNION"
+    const isUnion = interfaceOrUnionType && interfaceOrUnionType.kind === "UNION"
     const fileName = type.name + "ModelSelector"
-    const {
-      primitiveFields,
-      nonPrimitiveFields,
-      imports
-    } = resolveFieldsAndImports(type, fileName)
+    const { primitiveFields, nonPrimitiveFields, imports } = resolveFieldsAndImports(type, fileName)
 
     interfaceOrUnionType &&
       interfaceOrUnionType.ofTypes.forEach((t) => {
@@ -322,49 +293,32 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
 
     /** 2) Add the correct type for a TS union to the exports of the ModelSelector file */
     contents += ifTS(
-      `export type ${
-        interfaceOrUnionType?.name
-      }Union = ${interfaceOrUnionType?.ofTypes
+      `export type ${interfaceOrUnionType?.name}Union = ${interfaceOrUnionType?.ofTypes
         .map((unionModel) => `${unionModel.name}Model`)
         .join(" | ")}\n\n`
     )
 
-    contents += generateFragments(
-      type.name,
-      primitiveFields,
-      nonPrimitiveFields,
-      interfaceOrUnionType
-    )
+    contents += generateFragments(type.name, primitiveFields, nonPrimitiveFields, interfaceOrUnionType)
 
     toExport.push(fileName)
     generateFile(fileName, contents, true)
   }
 
-  function resolveFieldsAndImports(
-    type,
-    currentModuleName = `${currentType}Model.base`
-  ) {
+  function resolveFieldsAndImports(type, currentModuleName = `${currentType}Model.base`) {
     const imports = new Map()
     const typeImports = new Map()
     const addTypeImport = (moduleName, ...toBeImported) =>
-      addImportToMap(
-        typeImports,
-        currentModuleName,
-        moduleName,
-        ...toBeImported
-      )
+      addImportToMap(typeImports, currentModuleName, moduleName, ...toBeImported)
     const addImport = (moduleName, ...toBeImported) =>
       addImportToMap(imports, currentModuleName, moduleName, ...toBeImported)
     const primitiveFields: string[] = []
     const nonPrimitiveFields: [string, string][] = []
-    const refs: [string, IntrospectionNamedTypeRef['name'], boolean][] = []
+    const refs: [string, IntrospectionNamedTypeRef["name"], boolean][] = []
     const typeOverride = TypeOverride(type, overrides)
 
     let modelProperties = ""
     if (type.fields) {
-      modelProperties = type.fields
-        .map((field) => handleField(field))
-        .join("\n")
+      modelProperties = type.fields.map((field) => handleField(field)).join("\n")
     }
 
     return {
@@ -379,18 +333,13 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
     function handleField(field) {
       const fd = handleFieldType(field.name, field.type)
       let r = ""
-      if (field.description)
-        r += `    /** ${sanitizeComment(field.description)} */\n`
+      if (field.description) r += `    /** ${sanitizeComment(field.description)} */\n`
       r += `    ${field.name}:${
         field.name === "id"
           ? `prop<${fd}>().withSetter()`
-          : fd.toLowerCase().includes("model") 
+          : fd.toLowerCase().includes("model")
           ? `prop<${fd}>(${fd.includes("[]") ? "() => []" : ""}).withSetter()`
-          : `prop<${
-              fd.toLowerCase().includes("enum")
-                ? `${fd.replace("EnumType", "")}`
-                : fd
-            }>().withSetter()`
+          : `prop<${fd.toLowerCase().includes("enum") ? `${fd.replace("EnumType", "")}` : fd}>().withSetter()`
       },`
       return r
     }
@@ -404,45 +353,33 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       function result(thing, isRequired = false) {
         const canBeUndef = !isRequired && !isNested
         const canBeNull = !isRequired && isNullable
-        return `${thing}${canBeNull ? ' | null' : ''}`
+        return `${thing}${canBeNull ? " | null" : ""}`
       }
       switch (fieldType.kind) {
         case "SCALAR":
           primitiveFields.push(fieldName)
-          const primitiveType = primitiveToMkType(
-            fieldName,
-            fieldType.name,
-            typeOverride
-          )
+          const primitiveType = primitiveToMkType(fieldName, fieldType.name, typeOverride)
           const requiredTypes = ["identifier", "identifierNumber"]
           const isRequired = requiredTypes.includes(primitiveType)
           return result(`${primitiveType}`, isRequired)
         case "OBJECT":
           return result(handleObjectFieldType(fieldName, fieldType, isNested))
         case "LIST":
-          const listTypes = result(
-            handleFieldType(fieldName, fieldType.ofType, true)
-          );
+          const listTypes = result(handleFieldType(fieldName, fieldType.ofType, true))
           return `${listTypes.includes("|") ? `(${listTypes})` : listTypes}[]`
         case "ENUM":
           primitiveFields.push(fieldName)
           const enumType = fieldType.name
           if (type.kind !== "UNION" && type.kind !== "INTERFACE") {
             // TODO: import again when enums in query builders are supported
-            addTypeImport(
-              fieldType.name +
-                (!fieldType.name.toLowerCase().endsWith("enum") ? "Enum" : ""),
-              enumType
-            )
+            addTypeImport(fieldType.name + (!fieldType.name.toLowerCase().endsWith("enum") ? "Enum" : ""), enumType)
           }
           return result(enumType)
         case "INTERFACE":
         case "UNION":
           return result(handleInterfaceOrUnionFieldType(fieldName, fieldType))
         default:
-          throw new Error(
-            `Failed to convert type ${JSON.stringify(fieldType)}. PR Welcome!`
-          )
+          throw new Error(`Failed to convert type ${JSON.stringify(fieldType)}. PR Welcome!`)
       }
     }
 
@@ -491,9 +428,9 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         }
         const isSelf = fieldType.name === currentType
         // always using late prevents potential circular dependency issues between files
-        return rootTypes.includes(t.name) ? `Ref<${subTypeClassName}>` : subTypeClassName;
+        return rootTypes.includes(t.name) ? `Ref<${subTypeClassName}>` : subTypeClassName
       })
-      return MkUnionArgs ? `${MkUnionArgs.join(" | ")}` : ''
+      return MkUnionArgs ? `${MkUnionArgs.join(" | ")}` : ""
     }
   }
 
@@ -513,9 +450,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
       .map(([field, fieldName]) => {
         const selector = `${fieldName}ModelSelector`
         let p = `  ${field}(builder`
-        p += ifTS(
-          `?: string | ${selector} | ((selector: ${selector}) => ${selector})`
-        )
+        p += ifTS(`?: string | ${selector} | ((selector: ${selector}) => ${selector})`)
         p += `) { return this.__child(\`${field}\`, ${selector}, builder) }`
         return p
       })
@@ -527,9 +462,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
         .map((subType) => {
           const selector = `${subType.name}ModelSelector`
           let p = `  ${toFirstLower(subType.name)}(builder`
-          p += ifTS(
-            `?: string | ${selector} | ((selector: ${selector}) => ${selector})`
-          )
+          p += ifTS(`?: string | ${selector} | ((selector: ${selector}) => ${selector})`)
           p += `) { return this.__inlineFragment(\`${subType.name}\`, ${selector}, builder) }`
           return p
         })
@@ -547,16 +480,10 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
 
     if (interfaceOrUnionType && interfaceOrUnionType.kind === "UNION") {
       // for unions, select all primitive fields of member types
-      output +=
-        "// provides all primitive fields of union member types combined together\n"
+      output += "// provides all primitive fields of union member types combined together\n"
       output += modelPrimitives
       output += interfaceOrUnionType.ofTypes
-        .map(
-          (memberType) =>
-            `.${toFirstLower(memberType.name)}(${toFirstLower(
-              memberType.name
-            )}ModelPrimitives)`
-        )
+        .map((memberType) => `.${toFirstLower(memberType.name)}(${toFirstLower(memberType.name)}ModelPrimitives)`)
         .join("")
     } else {
       // for interaces and objects, select the defined fields
@@ -573,9 +500,7 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
   function generateRootStore() {
     toExport.push("RootStore")
 
-    const entryFile = `${ifTS(
-      'import { ExtendedModel, model } from "mobx-keystone"\n'
-    )}\
+    const entryFile = `${ifTS('import { ExtendedModel, model } from "mobx-keystone"\n')}\
 import { RootStoreBase } from "./RootStore.base${importPostFix}"
 @model('RootStore')
 export class RootStore extends ExtendedModel(RootStoreBase, {}) {}
@@ -585,14 +510,14 @@ export class RootStore extends ExtendedModel(RootStoreBase, {}) {}
 ${header}
 ${ifTS(`import type { ObservableMap } from "mobx"\n`)}\
 import { types, prop, tProp, Ref, Model, modelAction, objectMap, detach, model, findParent, customRef, ExtendedModel, AbstractModelClass } from "mobx-keystone"
-import { MKGQLStore, createMKGQLStore, ${
-      format === "ts" ? "QueryOptions" : ""
-    } } from "mk-gql"
+import { MKGQLStore, createMKGQLStore, ${format === "ts" ? "QueryOptions" : ""} } from "mk-gql"
 import { MergeHelper } from './mergeHelper';
 ${objectTypes
   .map(
     (t) =>
-      `\nimport { ${t}Model${!modelsOnly ? `, ${toFirstLower(t)}ModelPrimitives, ${t}ModelSelector` : ''}  } from "./${t}Model${importPostFix}"`
+      `\nimport { ${t}Model${
+        !modelsOnly ? `, ${toFirstLower(t)}ModelPrimitives, ${t}ModelSelector` : ""
+      }  } from "./${t}Model${importPostFix}"`
   )
   .join("")}
 ${
@@ -600,41 +525,25 @@ ${
   [...interfaceAndUnionTypes.values()]
     .map(
       (t) =>
-        `\nimport { ${toFirstLower(t.name)}ModelPrimitives ${ifTS(`, ${t.name}Union`)} } from "./${t.name}ModelSelector"`
+        `\nimport { ${toFirstLower(t.name)}ModelPrimitives ${ifTS(`, ${t.name}Union`)} } from "./${
+          t.name
+        }ModelSelector"`
     )
     .join("")
 }
 ${enumTypes
-  .map(
-    (t) =>
-      `\nimport type { ${t} } from "./${t}${
-        !t.toLowerCase().endsWith("enum") ? "Enum" : ""
-      }${importPostFix}"`
-  )
+  .map((t) => `\nimport type { ${t} } from "./${t}${!t.toLowerCase().endsWith("enum") ? "Enum" : ""}${importPostFix}"`)
   .join("")}
 ${ifTS(
   inputTypes
-    .map(
-      (t) =>
-        `\nexport type ${t.name} = {\n${t.inputFields
-          .map((field) => `  ${printTsType(field)}`)
-          .join("\n")}\n}`
-    )
+    .map((t) => `\nexport type ${t.name} = {\n${t.inputFields.map((field) => `  ${printTsType(field)}`).join("\n")}\n}`)
     .join("")
 )}
 ${ifTS(`/* The TypeScript type that explicits the refs to other models in order to prevent a circular refs issue */
 
 
 type Refs = {
-${rootTypes
-  .map(
-    (t) =>
-      `  ${transformRootName(
-        t,
-        namingConvention
-      )}: ObservableMap<string, ${t}Model>`
-  )
-  .join(",\n")}
+${rootTypes.map((t) => `  ${transformRootName(t, namingConvention)}: ObservableMap<string, ${t}Model>`).join(",\n")}
 }\n\n`)}\
 ${ifTS(`
 /**
@@ -647,20 +556,12 @@ ${ifTS(generateGraphQLActionsEnum("Mutation", "Mutations", "mutate"))}
 * Store, managing, among others, all the objects received through graphQL
 */
 export class RootStoreBase extends ExtendedModel(createMKGQLStore<AbstractModelClass<MKGQLStore>>([${origObjectTypes
-      .map(
-        (s) => `['${s}', () => ${transformTypeName(s, namingConvention)}Model]`
-      )
+      .map((s) => `['${s}', () => ${transformTypeName(s, namingConvention)}Model]`)
       .join(", ")}], [${origRootTypes.map((s) => `'${s}'`).join(", ")}] ${
       namingConvention == "asis" ? "" : `, "${namingConvention}"`
     }),{
 ${rootTypes
-  .map(
-    (t) =>
-      `    ${transformRootName(
-        t,
-        namingConvention
-      )}: prop(() => objectMap<${t}Model>())`
-  )
+  .map((t) => `    ${transformRootName(t, namingConvention)}: prop(() => objectMap<${t}Model>())`)
   .join(",\n")}, 
     mergeHelper: prop<MergeHelper>(() => new MergeHelper({}))
   }) {
@@ -685,22 +586,13 @@ ${rootTypes
     (t) => `export const ${transformRootName(
       t,
       namingConvention
-    )}Ref = appRef<${t}Model>(RootStoreBase, "${t}", '${transformRootName(
-      t,
-      namingConvention
-    )}')
+    )}Ref = appRef<${t}Model>(RootStoreBase, "${t}", '${transformRootName(t, namingConvention)}')
     `
   )
   .join("\n")}
   export const rootRefs = {
 ${rootTypes
-  .map(
-    (t) =>
-      `  ${transformRootName(t, namingConvention)}: ${transformRootName(
-        t,
-        namingConvention
-      )}Ref`
-  )
+  .map((t) => `  ${transformRootName(t, namingConvention)}: ${transformRootName(t, namingConvention)}Ref`)
   .join(",\n")}
 }
 `
@@ -840,8 +732,7 @@ function merge(a, b) {
     let returnType = returnsList ? type.ofType : type
     if (returnType.kind === "NON_NULL") returnType = returnType.ofType
 
-    if (returnType.kind === "OBJECT" && excludes.includes(returnType.name))
-      return true
+    if (returnType.kind === "OBJECT" && excludes.includes(returnType.name)) return true
     // TODO: probably we will need to support input object types soon
     return false
   }
@@ -886,28 +777,18 @@ ${enumContent}
         findObjectByName(schema.queryType ? schema.queryType.name : "Query"),
         "query",
         "query",
-        format === "ts"
-          ? ", options: QueryOptions = {}, clean?: boolean"
-          : ", options = {}, clean",
+        format === "ts" ? ", options: QueryOptions = {}, clean?: boolean" : ", options = {}, clean",
         ", options, !!clean"
       ) +
       generateQueryHelper(
-        findObjectByName(
-          schema.mutationType ? schema.mutationType.name : "Mutation"
-        ),
+        findObjectByName(schema.mutationType ? schema.mutationType.name : "Mutation"),
         "mutation",
         "mutate",
-        format === "ts"
-          ? ", optimisticUpdate?: () => void"
-          : ", optimisticUpdate",
+        format === "ts" ? ", optimisticUpdate?: () => void" : ", optimisticUpdate",
         ", optimisticUpdate"
       ) +
       generateQueryHelper(
-        findObjectByName(
-          schema.subscriptionType
-            ? schema.subscriptionType.name
-            : "Subscription"
-        ),
+        findObjectByName(schema.subscriptionType ? schema.subscriptionType.name : "Subscription"),
         "subscription",
         "subscribe",
         format === "ts"
@@ -918,13 +799,7 @@ ${enumContent}
     )
   }
 
-  function generateQueryHelper(
-    query,
-    gqlPrefix,
-    methodPrefix,
-    extraFormalArgs = "",
-    extraActualArgs = ""
-  ) {
+  function generateQueryHelper(query, gqlPrefix, methodPrefix, extraFormalArgs = "", extraActualArgs = "") {
     if (!query) return ""
 
     return query.fields
@@ -933,9 +808,7 @@ ${enumContent}
 
         let { name, origName, args, type, description } = field
 
-        const isScalar =
-          type.kind === "SCALAR" ||
-          (type.ofType && type.ofType.kind === "SCALAR")
+        const isScalar = type.kind === "SCALAR" || (type.ofType && type.ofType.kind === "SCALAR")
 
         if (type.kind === "NON_NULL") type = type.ofType
         const returnsList = type.kind === "LIST"
@@ -950,32 +823,18 @@ ${enumContent}
                 isScalar
                   ? `${printTsPrimitiveType(type.name)} `
                   : `${returnType.name}${
-                      returnType.kind === "UNION" ||
-                      returnType.kind === "INTERFACE"
-                        ? "Union"
-                        : "Model"
+                      returnType.kind === "UNION" || returnType.kind === "INTERFACE" ? "Union" : "Model"
                     }${returnsList ? "[]" : ""}`
               }}>`
 
         const formalArgs =
           args.length === 0
             ? ""
-            : "(" +
-              args
-                .map((arg) => `\$${arg.name}: ${printGraphqlType(arg.type)}`)
-                .join(", ") +
-              ")"
+            : "(" + args.map((arg) => `\$${arg.name}: ${printGraphqlType(arg.type)}`).join(", ") + ")"
         const actualArgs =
-          args.length === 0
-            ? ""
-            : "(" +
-              args.map((arg) => `${arg.origName}: \$${arg.name}`).join(", ") +
-              ")"
+          args.length === 0 ? "" : "(" + args.map((arg) => `${arg.origName}: \$${arg.name}`).join(", ") + ")"
 
-        const tsVariablesType =
-          format === "ts"
-            ? `: { ${args.map((arg) => `${printTsType(arg)}`).join(", ")} }`
-            : ""
+        const tsVariablesType = format === "ts" ? `: { ${args.map((arg) => `${printTsType(arg)}`).join(", ")} }` : ""
         const isNullable = args.every((arg) => arg.type.kind !== "NON_NULL")
         return `\
 ${optPrefix("\n    // ", sanitizeComment(description))}
@@ -996,11 +855,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
                       : `typeof ${returnType.name}ModelSelector`
                   })`
                 ) /* TODO or GQL object */
-              } = ${
-                returnType.kind !== "OBJECT"
-                  ? '""'
-                  : `${toFirstLower(returnType.name)}ModelPrimitives.toString()`
-              }`
+              } = ${returnType.kind !== "OBJECT" ? '""' : `${toFirstLower(returnType.name)}ModelPrimitives.toString()`}`
         } ${extraFormalArgs}) {
       return this.${methodPrefix}${tsType}(\`${gqlPrefix} ${name}${formalArgs} { ${name}${actualArgs} ${
           returnType.kind === "OBJECT"
@@ -1026,19 +881,11 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
       case "SCALAR":
         return type.origName ? type.origName : type.name
       default:
-        throw new Error(
-          "Not implemented printGraphQLType yet, PR welcome for " +
-            JSON.stringify(type, null, 2)
-        )
+        throw new Error("Not implemented printGraphQLType yet, PR welcome for " + JSON.stringify(type, null, 2))
     }
   }
 
-  function printTsType(
-    field,
-    name?: string,
-    canBeUndefined = true,
-    fromUndefineableList = false
-  ) {
+  function printTsType(field, name?: string, canBeUndefined = true, fromUndefineableList = false) {
     let typeValue
     let type
 
@@ -1063,23 +910,15 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
         typeValue = printTsPrimitiveType(type.name)
         break
       default:
-        console.warn(
-          "Not implemented printTsType yet, PR welcome for " +
-            JSON.stringify(type, null, 2)
-        )
+        console.warn("Not implemented printTsType yet, PR welcome for " + JSON.stringify(type, null, 2))
         typeValue = "any"
     }
 
-    return `${name}${
-      canBeUndefined || fromUndefineableList ? "?" : ""
-    }: ${typeValue}${canBeUndefined ? " | null" : ""}`
+    return `${name}${canBeUndefined || fromUndefineableList ? "?" : ""}: ${typeValue}${canBeUndefined ? " | null" : ""}`
   }
 
   function printTsPrimitiveType(primitiveType) {
-    const primitiveTypeOverride = getTsPrimitiveTypeOverride(
-      primitiveType,
-      overrides
-    )
+    const primitiveTypeOverride = getTsPrimitiveTypeOverride(primitiveType, overrides)
     if (primitiveTypeOverride) return primitiveTypeOverride
 
     const res = {
@@ -1094,9 +933,7 @@ ${optPrefix("\n    // ", sanitizeComment(description))}
   }
 
   function findObjectByName(name) {
-    return types.find(
-      (type) => type.origName === name && type.kind === "OBJECT"
-    )
+    return types.find((type) => type.origName === name && type.kind === "OBJECT")
   }
 
   function generateBarrelFile() {
@@ -1113,12 +950,7 @@ export * from "./RootStore.base";
     files.push([name, contents, force])
   }
 
-  function addImportToMap(
-    importMap,
-    currentModuleName,
-    moduleName,
-    ...toBeImported
-  ) {
+  function addImportToMap(importMap, currentModuleName, moduleName, ...toBeImported) {
     if (moduleName !== currentModuleName) {
       if (importMap.has(moduleName)) {
         importMap.get(moduleName).add(...toBeImported)
@@ -1172,8 +1004,7 @@ function getMkDefaultValue(type) {
     boolean: "false",
     "frozen()": "undefined"
   }
-  if (res[type] === undefined)
-    throw new Error("Type cannot be optional: " + type)
+  if (res[type] === undefined) throw new Error("Type cannot be optional: " + type)
   return res[type]
 }
 
@@ -1205,18 +1036,12 @@ function resolveInterfaceAndUnionTypes(types): Map<string, InterfaceOrUnionTypes
         upsertInterfaceOrUnionType(interfaceType, type, result)
 
         interfaceType.fields.forEach((interfaceField) => {
-          if (
-            !type.fields.some(
-              (objectField) => objectField.name === interfaceField.name
-            )
-          )
+          if (!type.fields.some((objectField) => objectField.name === interfaceField.name))
             type.fields.push(interfaceField) // Note: is inlining necessary? Deriving objects need to define all interface properties?
         })
       })
       if (memberTypesToUnions.has(type.origName)) {
-        memberTypesToUnions
-          .get(type.origName)
-          .forEach((union) => upsertInterfaceOrUnionType(union, type, result))
+        memberTypesToUnions.get(type.origName).forEach((union) => upsertInterfaceOrUnionType(union, type, result))
       }
     }
   })
@@ -1225,10 +1050,10 @@ function resolveInterfaceAndUnionTypes(types): Map<string, InterfaceOrUnionTypes
 }
 
 interface InterfaceOrUnionTypes {
-  name: string;
-  kind: "UNION" | "INTERFACE";
-  ofTypes: IntrospectionNamedTypeRef[];
-  fields?: ReadonlyArray<IntrospectionField>;
+  name: string
+  kind: "UNION" | "INTERFACE"
+  ofTypes: IntrospectionNamedTypeRef[]
+  fields?: ReadonlyArray<IntrospectionField>
 }
 function upsertInterfaceOrUnionType(type, subType, result: Map<string, InterfaceOrUnionTypes>) {
   if (result.has(type.name)) {
@@ -1278,14 +1103,7 @@ function log(thing) {
   return thing
 }
 
-function writeFiles(
-  outDir,
-  files,
-  format = "ts",
-  forceAll = false,
-  log = false,
-  separate = false
-) {
+function writeFiles(outDir, files, format = "ts", forceAll = false, log = false, separate = false) {
   function deCapitalize(str) {
     return `${str.charAt(0).toLowerCase()}${str.slice(1)}`
   }
@@ -1302,14 +1120,7 @@ function writeFiles(
         fs.mkdirSync(targetDir)
       }
 
-      writeFile(
-        splits[1] || "root",
-        contents,
-        force || forceAll,
-        format,
-        targetDir,
-        log
-      )
+      writeFile(splits[1] || "root", contents, force || forceAll, format, targetDir, log)
     }
   })
 }
@@ -1337,8 +1148,7 @@ function scaffold(
 ) {
   const schema = buildSchema(definition)
   const res = graphqlSync(schema, introspectionQuery)
-  if (!res.data)
-    throw new Error("graphql parse error:\n\n" + JSON.stringify(res, null, 2))
+  if (!res.data) throw new Error("graphql parse error:\n\n" + JSON.stringify(res, null, 2))
   return generate(
     res.data.__schema,
     "ts",
@@ -1478,9 +1288,7 @@ function logUnexpectedFiles(outDir, files) {
   const expectedFiles = new Set(files.map(([name]) => name))
   fs.readdirSync(outDir).forEach((file) => {
     if (!expectedFiles.has(path.parse(file).name)) {
-      console.log(
-        `Unexpected file "${file}". This could be a type that is no longer needed.`
-      )
+      console.log(`Unexpected file "${file}". This could be a type that is no longer needed.`)
     }
   })
 }
@@ -1489,26 +1297,19 @@ function buildOverrides(fieldOverrides) {
   const overrides = fieldOverrides.map(parseFieldOverride)
 
   const getMatchingOverridesForField = (declaringType, name, type) => {
-    return overrides.filter((override) =>
-      override.matches(declaringType, name, type)
-    )
+    return overrides.filter((override) => override.matches(declaringType, name, type))
   }
 
   const getMostSpecificOverride = (overrides) => {
     return overrides.reduce((acc, override) => {
-      if (acc === null || override.specificity > acc.specificity)
-        return override
+      if (acc === null || override.specificity > acc.specificity) return override
 
       return acc
     }, null)
   }
 
   const getOverrideForField = (declaringType, name, type) => {
-    const matchingOverrides = getMatchingOverridesForField(
-      declaringType,
-      name,
-      type
-    )
+    const matchingOverrides = getMatchingOverridesForField(declaringType, name, type)
     return getMostSpecificOverride(matchingOverrides)
   }
 
@@ -1528,17 +1329,10 @@ function buildOverrides(fieldOverrides) {
     const [unsplitFieldName, fieldType, destinationMkType] = override
 
     const splitFieldName = unsplitFieldName.split(".")
-    const fieldDeclaringType =
-      splitFieldName.length === 2 ? splitFieldName[0] : "*"
-    const fieldName =
-      splitFieldName.length === 1 ? splitFieldName[0] : splitFieldName[1]
+    const fieldDeclaringType = splitFieldName.length === 2 ? splitFieldName[0] : "*"
+    const fieldName = splitFieldName.length === 1 ? splitFieldName[0] : splitFieldName[1]
 
-    return Override(
-      fieldDeclaringType,
-      fieldName,
-      fieldType,
-      destinationMkType
-    )
+    return Override(fieldDeclaringType, fieldName, fieldType, destinationMkType)
   }
 }
 
@@ -1568,11 +1362,7 @@ function TypeOverride(currentType, overrides) {
     const override = overrides.getOverrideForField(declaringType, name, type)
 
     if (hasIdOverride() && isIdType(override, type)) {
-      if (
-        override &&
-        override.specificity === mostSpecificIdOverride.specificity
-      )
-        return override.destinationMkType
+      if (override && override.specificity === mostSpecificIdOverride.specificity) return override.destinationMkType
 
       return "frozen()"
     }
@@ -1597,18 +1387,12 @@ function TypeOverride(currentType, overrides) {
     if (!currentType.fields) return null
 
     const idOverrides = currentType.fields
-      .map(({ name, type }) =>
-        type.kind === "NON_NULL" ? { name, type: type.ofType } : { name, type }
-      )
+      .map(({ name, type }) => (type.kind === "NON_NULL" ? { name, type: type.ofType } : { name, type }))
       .filter(({ type }) => type.kind === "SCALAR")
-      .map(({ name, type }) =>
-        overrides.getOverrideForField(declaringType, name, type.name)
-      )
+      .map(({ name, type }) => overrides.getOverrideForField(declaringType, name, type.name))
       .filter(isMkIdType)
 
-    const mostSpecificIdOverride = overrides.getMostSpecificOverride(
-      idOverrides
-    )
+    const mostSpecificIdOverride = overrides.getMostSpecificOverride(idOverrides)
 
     const mostSpecificIdOverrideCount = idOverrides.filter(
       (override) => override.specificity === mostSpecificIdOverride.specificity
@@ -1622,23 +1406,13 @@ function TypeOverride(currentType, overrides) {
   }
 }
 
-function Override(
-  fieldDeclaringType,
-  fieldName,
-  fieldType,
-  destinationMkType
-) {
-  const specificity = computeOverrideSpecificity(
-    fieldDeclaringType,
-    fieldName,
-    fieldType
-  )
+function Override(fieldDeclaringType, fieldName, fieldType, destinationMkType) {
+  const specificity = computeOverrideSpecificity(fieldDeclaringType, fieldName, fieldType)
 
   const fieldDeclaringTypeRegExp = wildcardToRegExp(fieldDeclaringType)
   const fieldNameRegExp = wildcardToRegExp(fieldName)
 
-  const matchesDeclaringType = (declaringType) =>
-    fieldDeclaringTypeRegExp.test(declaringType)
+  const matchesDeclaringType = (declaringType) => fieldDeclaringTypeRegExp.test(declaringType)
 
   const matches = (declaringType, name, type) => {
     return (
@@ -1679,14 +1453,11 @@ function Override(
       const nameSpecificity = getNameSpecificity()
       const typeSpecificity = getTypeSpecificity()
 
-      if (nameSpecificity === 0 && typeSpecificity === 0)
-        throw new Error("Both name and type cannot be wildcards")
+      if (nameSpecificity === 0 && typeSpecificity === 0) throw new Error("Both name and type cannot be wildcards")
 
       return declaringTypeSpecificity + nameSpecificity + typeSpecificity
     } catch (err) {
-      throw Error(
-        `Error parsing fieldOverride ${name}:${type}:\n ${(err as Error).message}`
-      )
+      throw Error(`Error parsing fieldOverride ${name}:${type}:\n ${(err as Error).message}`)
     }
 
     function getDeclaringTypeSpecificity() {
@@ -1708,8 +1479,7 @@ function Override(
     function getTypeSpecificity() {
       if (isOnlyWildcard(fieldType)) return 0b0000
 
-      if (hasWildcard(fieldType))
-        throw new Error("type cannot be a partial wildcard: e.g. *_id")
+      if (hasWildcard(fieldType)) throw new Error("type cannot be a partial wildcard: e.g. *_id")
 
       return 0b0001
     }
@@ -1718,7 +1488,6 @@ function Override(
 
 const hasWildcard = (text) => RegExp(/\*/).test(text)
 const isOnlyWildcard = (text) => text === "*"
-const wildcardToRegExp = (text) =>
-  new RegExp("^" + text.split(/\*+/).map(escapeStringRegexp).join(".+") + "$")
+const wildcardToRegExp = (text) => new RegExp("^" + text.split(/\*+/).map(escapeStringRegexp).join(".+") + "$")
 
 export { generate, writeFiles, scaffold, logUnexpectedFiles }

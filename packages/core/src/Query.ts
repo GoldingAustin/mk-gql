@@ -46,11 +46,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
     this.queryKey = this.query + stringify(variables)
 
     let fetchPolicy = options.fetchPolicy || "cache-and-network"
-    if (
-      this.store.ssr &&
-      !this.options.noSsr &&
-      (isServer || !store.__afterInit)
-    ) {
+    if (this.store.ssr && !this.options.noSsr && (isServer || !store.__afterInit)) {
       fetchPolicy = "cache-first"
     }
     this.fetchPolicy = fetchPolicy
@@ -68,9 +64,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
         break
       case "cache-only":
         if (!inCache) {
-          this.error = new Error(
-            `No results for query ${this.query} found in cache, and policy is cache-only`
-          )
+          this.error = new Error(`No results for query ${this.query} found in cache, and policy is cache-only`)
           this.promise = Promise.reject(this.error)
         } else {
           this.useCachedResults()
@@ -159,10 +153,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
   }
 
   private useCachedResults() {
-    this.data = this.store.merge(
-      this.store.__queryCache.get(this.queryKey),
-      this.del
-    )
+    this.data = this.store.merge(this.store.__queryCache.get(this.queryKey), this.del)
     this.promise = Promise.resolve(this.data!)
   }
 
@@ -179,14 +170,8 @@ export class Query<T = unknown> implements PromiseLike<T> {
   }
 
   then<TResult1 = T, TResult2 = never>(
-    onfulfilled?:
-      | ((value: T) => TResult1 | PromiseLike<TResult1>)
-      | undefined
-      | null,
-    onrejected?:
-      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): PromiseLike<TResult1 | TResult2>
   then(onfulfilled: any, onrejected: any) {
     return this.promise.then(

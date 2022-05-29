@@ -38,7 +38,6 @@
   ],
   "scripts": {
     "test": "jest test",
-    "watch": "jest test --watch",
     "build": "microbundle -i ./packages/core/src/mk-gql.ts --tsconfig ./tsconfig.build.json --compress --external mobx,mobx-keystone,graphql,graphql-request && yarn workspace generator run build",
     "format": "prettier --write '**/*'"
   },

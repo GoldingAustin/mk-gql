@@ -1,13 +1,5 @@
 import camelcase from "camelcase"
-import {
-  AbstractModelClass,
-  ExtendedModel,
-  Model,
-  model,
-  modelAction,
-  objectMap,
-  prop
-} from "mobx-keystone"
+import { AbstractModelClass, ExtendedModel, Model, model, modelAction, objectMap, prop } from "mobx-keystone"
 import pluralize from "pluralize"
 import { deflateHelper } from "./deflateHelper"
 
@@ -16,7 +8,7 @@ import { Query, QueryOptions } from "./Query"
 export interface RequestHandler<T = any> {
   request(query: string, variables: any): Promise<T>
 }
-export type Store = MKGQLStore & {merge: (data: any, del: boolean) => any};
+export type Store = MKGQLStore & { merge: (data: any, del: boolean) => any }
 
 @model("MKGQLStore")
 export class MKGQLStore extends Model({
@@ -49,29 +41,19 @@ export class MKGQLStore extends Model({
   @modelAction
   rawRequest(query: string, variables: any): Promise<any> | undefined {
     try {
-      if (this.gqlHttpClient && this.gqlHttpClient.request)
-        return this.gqlHttpClient.request(query, variables)
+      if (this.gqlHttpClient && this.gqlHttpClient.request) return this.gqlHttpClient.request(query, variables)
     } catch (e) {
       return Promise.reject(e)
     }
   }
 
   @modelAction
-  query<T>(
-    query: string,
-    variables?: any,
-    options: QueryOptions = {},
-    del?: boolean
-  ): Query<T> {
+  query<T>(query: string, variables?: any, options: QueryOptions = {}, del?: boolean): Query<T> {
     return new Query(this as unknown as Store, query, variables, options, !!del)
   }
 
   @modelAction
-  mutate<T>(
-    mutation: string,
-    variables?: any,
-    optimisticUpdate?: () => void
-  ): Query<T> {
+  mutate<T>(mutation: string, variables?: any, optimisticUpdate?: () => void): Query<T> {
     return this.query(mutation, variables, {
       fetchPolicy: "network-only",
       delete: mutation.toLowerCase().includes("delete")
@@ -136,15 +118,12 @@ export function createMKGQLStore<T extends AbstractModelClass<any>>(
       if (super.onInit) super.onInit()
       knownTypes.forEach(([key, typeFn]) => {
         const type = typeFn()
-        if (!type)
-          throw new Error(
-            `The type provided for '${key}' is empty. Probably this is a module loading issue`
-          )
+        if (!type) throw new Error(`The type provided for '${key}' is empty. Probably this is a module loading issue`)
         this.kt.set(key, type)
       })
     }
   }
-  return (CreatedStore as unknown) as T
+  return CreatedStore as unknown as T
 }
 
 export function configureStoreMixin(
@@ -160,10 +139,7 @@ export function configureStoreMixin(
         // initialized lazily, so that there are no circular dep issues
         knownTypes.forEach(([key, typeFn]) => {
           const type = typeFn()
-          if (!type)
-            throw new Error(
-              `The type provided for '${key}' is empty. Probably this is a module loading issue`
-            )
+          if (!type) throw new Error(`The type provided for '${key}' is empty. Probably this is a module loading issue`)
           kt.set(key, type)
         })
       }

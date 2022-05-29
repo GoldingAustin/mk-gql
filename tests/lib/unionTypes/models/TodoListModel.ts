@@ -7,5 +7,5 @@ export { selectFromTodoList, todoListModelPrimitives, TodoListModelSelector } fr
 /**
  * TodoListModel
  */
-@model('TodoList')
+@model("TodoList")
 export class TodoListModel extends ExtendedModel(TodoListModelBase, {}) {}

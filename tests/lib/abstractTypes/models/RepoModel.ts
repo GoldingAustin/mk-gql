@@ -7,5 +7,5 @@ export { selectFromRepo, repoModelPrimitives, RepoModelSelector } from "./RepoMo
 /**
  * RepoModel
  */
-@model('Repo')
+@model("Repo")
 export class RepoModel extends ExtendedModel(RepoModelBase, {}) {}

@@ -1,11 +1,8 @@
-
 import { applySnapshot, getSnapshot } from "mobx-keystone"
 
-import * as models from './models/root';
-
+import * as models from "./models/root"
 
 describe("unionTypes tests", () => {
-
   function mockLoadTodoList(query, variables) {
     expect(variables).toEqual(undefined)
     return {
@@ -43,20 +40,15 @@ describe("unionTypes tests", () => {
       }
     }
     const store = new models.RootStore({})
-    store.gqlHttpClient = mockClient;
-    store.ssr = true;
+    store.gqlHttpClient = mockClient
+    store.ssr = true
 
     await store.queryTodoLists()
-    expect(
-      store.todoLists.get("c")?.todos?.filter((f) => f?.maybeCurrent?.complete)
-    ).toHaveLength(1)
+    expect(store.todoLists.get("c")?.todos?.filter((f) => f?.maybeCurrent?.complete)).toHaveLength(1)
     const ss = getSnapshot(store)
     const store2 = new models.RootStore({})
-    applySnapshot(store2, ss);
+    applySnapshot(store2, ss)
 
-
-    expect(
-      store2.todoLists.get("c")?.todos?.filter((f) => f?.maybeCurrent?.complete)
-    ).toHaveLength(1)
+    expect(store2.todoLists.get("c")?.todos?.filter((f) => f?.maybeCurrent?.complete)).toHaveLength(1)
   })
 })

@@ -1,6 +1,6 @@
 /// <reference types="jest"/>
 
-import { scaffold } from "../../packages/generator/src/generate";
+import { scaffold } from "../../packages/generator/src/generate"
 
 const findFile = (output, name) => output.find((o) => o.length && o.length > 1 && o[0] === name)
 const hasFileContent = (file, snippet) => file[1].includes(snippet)
@@ -60,7 +60,10 @@ type query_root {
     expect(output).toMatchSnapshot()
     expect(findFile(output, "MyUserModel.base")).toBeTruthy()
     expect(
-      hasFileContent(findFile(output, "MyUserModel.base"), "emptyBoxes:prop<(Ref<PossiblyEmptyBoxModel> | null)[]>(() => [])")
+      hasFileContent(
+        findFile(output, "MyUserModel.base"),
+        "emptyBoxes:prop<(Ref<PossiblyEmptyBoxModel> | null)[]>(() => [])"
+      )
     ).toBeTruthy()
 
     expect(findFile(output, "PossiblyEmptyBoxModel.base")).toBeTruthy()
@@ -373,7 +376,10 @@ type HelloResult {
 
     // This should be generated for the query with scalar (String) return type
     expect(
-      hasFileContentExact(rootStoreBase, "@modelAction queryHelloWithString(variables?: {  }, _?: any , options: QueryOptions = {}, clean?: boolean) {")
+      hasFileContentExact(
+        rootStoreBase,
+        "@modelAction queryHelloWithString(variables?: {  }, _?: any , options: QueryOptions = {}, clean?: boolean) {"
+      )
     ).toBeTruthy()
 
     // This should be generated for the query with complex return type
@@ -408,14 +414,16 @@ type HelloResult {
   `
 
     const output = scaffold(schema, {
-      roots: ["User"],
+      roots: ["User"]
     })
 
     expect(output).toMatchSnapshot()
 
     expect(hasFileContent(findFile(output, "UserModel.base"), "id:prop<string | number | null>")).toBeTruthy()
 
-    expect(hasFileContent(findFile(output, "RootStore.base"), "@modelAction queryUser(variables: { id: string | number },")).toBeTruthy()
+    expect(
+      hasFileContent(findFile(output, "RootStore.base"), "@modelAction queryUser(variables: { id: string | number },")
+    ).toBeTruthy()
 
     expect(hasFileContent(findFile(output, "RootStore.base"), "ids: string | number[]")).toBeTruthy()
   })
@@ -496,9 +504,7 @@ type HelloResult {
     expect(output).toMatchSnapshot()
     expect(hasFileContent(findFile(output, "UserModel.base"), "user_id:prop<string>")).toBeTruthy()
 
-    expect(
-      hasFileContent(findFile(output, "BookModel.base"), "id:prop<any>")
-    ).toBeTruthy()
+    expect(hasFileContent(findFile(output, "BookModel.base"), "id:prop<any>")).toBeTruthy()
   })
 
   test("overrides with multiple matches uses best one when using fieldOverrides", () => {
@@ -549,15 +555,11 @@ type HelloResult {
     })
 
     expect(output).toMatchSnapshot()
-    expect(
-      hasFileContent(findFile(output, "UserModel.base"), "id:prop<string | number>")
-    ).toBeTruthy()
+    expect(hasFileContent(findFile(output, "UserModel.base"), "id:prop<string | number>")).toBeTruthy()
 
     expect(hasFileContent(findFile(output, "UserModel.base"), "user_id:prop<string>")).toBeTruthy()
 
-    expect(
-      hasFileContent(findFile(output, "BookModel.base"), "id:prop<string | number>")
-    ).toBeTruthy()
+    expect(hasFileContent(findFile(output, "BookModel.base"), "id:prop<string | number>")).toBeTruthy()
 
     expect(hasFileContent(findFile(output, "BookModel.base"), "book_id:prop<string>")).toBeTruthy()
   })

@@ -7,5 +7,5 @@ export { selectFromFancyTodo, fancyTodoModelPrimitives, FancyTodoModelSelector }
 /**
  * FancyTodoModel
  */
-@model('FancyTodo')
+@model("FancyTodo")
 export class FancyTodoModel extends ExtendedModel(FancyTodoModelBase, {}) {}

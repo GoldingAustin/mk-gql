@@ -106,9 +106,7 @@ export class RootStoreBase extends ExtendedModel(
     variables?: {},
     resultSelector:
       | string
-      | ((
-          qb: typeof MessageModelSelector
-        ) => typeof MessageModelSelector) = messageModelPrimitives.toString(),
+      | ((qb: typeof MessageModelSelector) => typeof MessageModelSelector) = messageModelPrimitives.toString(),
     options: QueryOptions = {},
     clean?: boolean
   ) {
@@ -119,9 +117,7 @@ export class RootStoreBase extends ExtendedModel(
     variables: { id: string | number; name: string },
     resultSelector:
       | string
-      | ((
-          qb: typeof UserModelSelector
-        ) => typeof UserModelSelector) = userModelPrimitives.toString(),
+      | ((qb: typeof UserModelSelector) => typeof UserModelSelector) = userModelPrimitives.toString(),
     optimisticUpdate?: () => void
   ) {
     // implementation omitted
@@ -157,7 +153,7 @@ Complex children can be selected by calling the field as function, and provide a
 
 ```javascript
 // prettier-ignore
-;msg => msg
+msg => msg
   .timestamp
   .text
   .user(user => user.name.avatar)

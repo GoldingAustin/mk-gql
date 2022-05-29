@@ -7,5 +7,5 @@ export { selectFromMovie, movieModelPrimitives, MovieModelSelector } from "./Mov
 /**
  * MovieModel
  */
-@model('Movie')
+@model("Movie")
 export class MovieModel extends ExtendedModel(MovieModelBase, {}) {}

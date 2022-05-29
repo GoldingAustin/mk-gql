@@ -39,10 +39,7 @@ export abstract class QueryBuilder {
     return this
   }
 
-  protected __buildChild<T extends QueryBuilder>(
-    childType: new () => T,
-    builder?: string | ((q: T) => T) | T
-  ) {
+  protected __buildChild<T extends QueryBuilder>(childType: new () => T, builder?: string | ((q: T) => T) | T) {
     // already instantiated child builder
     if (builder instanceof QueryBuilder) {
       this._(builder.toString())

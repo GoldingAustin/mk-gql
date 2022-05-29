@@ -7,5 +7,5 @@ export { selectFromUser, userModelPrimitives, UserModelSelector } from "./UserMo
 /**
  * UserModel
  */
-@model('User')
+@model("User")
 export class UserModel extends ExtendedModel(UserModelBase, {}) {}

@@ -1,16 +1,15 @@
 /// <reference types="jest"/>
 
-import * as models from "./models/root";
-import { getSnapshot, setGlobalConfig } from "mobx-keystone";
+import * as models from "./models/root"
+import { getSnapshot, setGlobalConfig } from "mobx-keystone"
 
 let id = 1
 setGlobalConfig({
   modelIdGenerator() {
     return `id-${id++}`
-  },
+  }
 })
 describe("todos.graphql tests", () => {
-
   /** This functions provides a mock implementation for loading todos from the graphql endpoint. Also verifies the incoming arguments */
   function mockLoadTodos(query, variables) {
     expect(query).toMatchInlineSnapshot(`
@@ -76,13 +75,16 @@ describe("todos.graphql tests", () => {
 
     /** Create a store with some initial state */
     const store = new models.RootStore({})
-    store.todos.set('a', new models.TodoModel({
-      id: "a",
-      __typename: "Todo",
-      complete: false,
-      text: "Initially loaded todo"
-    }))
-    store.gqlHttpClient = mockClient;
+    store.todos.set(
+      "a",
+      new models.TodoModel({
+        id: "a",
+        __typename: "Todo",
+        complete: false,
+        text: "Initially loaded todo"
+      })
+    )
+    store.gqlHttpClient = mockClient
 
     // initially, 1 todo
     expect(getSnapshot(store)).toMatchSnapshot()
@@ -115,14 +117,17 @@ describe("todos.graphql tests", () => {
     }
     /** Create a store with some initial state */
     const store = new models.RootStore({})
-    store.todos.set('a', new models.TodoModel({
-      id: "a",
-      __typename: "Todo",
-      complete: false,
-      text: "Initially loaded todo"
-    }))
-    store.gqlHttpClient = mockClient;
-    store.ssr = true;
+    store.todos.set(
+      "a",
+      new models.TodoModel({
+        id: "a",
+        __typename: "Todo",
+        complete: false,
+        text: "Initially loaded todo"
+      })
+    )
+    store.gqlHttpClient = mockClient
+    store.ssr = true
 
     store.queryTodos()
     expect(store.__promises.size).toBe(1)
