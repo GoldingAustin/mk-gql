@@ -1,0 +1,10 @@
+{
+  "name": "generator",
+  "version": "0.7.0",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.2"
+  }
+}

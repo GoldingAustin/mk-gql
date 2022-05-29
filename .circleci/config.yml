@@ -6,7 +6,7 @@ executors:
       - image: circleci/node:11
         environment:
           CI: true
-    working_directory: ~/mst-gql
+    working_directory: ~/mk-gql
 
 jobs:
   build:

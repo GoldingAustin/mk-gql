@@ -1,12 +1,12 @@
 {
   "bracketSpacing": true,
-  "printWidth": 80,
+  "printWidth": 120,
   "proseWrap": "never",
   "requirePragma": false,
   "semi": false,
   "singleQuote": false,
   "tabWidth": 2,
-  "lineEnding": "lf",
+  "endOfLine": "lf",
   "trailingComma": "none",
   "useTabs": false,
   "overrides": [

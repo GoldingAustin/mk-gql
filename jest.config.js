@@ -1,11 +1,11 @@
 module.exports = {
-  testEnvironment: "node",
+  preset: 'ts-jest/presets/default-esm',
   testPathIgnorePatterns: ["/node_modules/", "/examples/"],
   watchPathIgnorePatterns: [
     "/tests/lib/todos/models/",
     "/tests/lib/unionTypes/models/"
   ],
   moduleNameMapper: {
-    "^mst-gql$": "<rootDir>/src/mst-gql.ts"
+    "^mk-gql$": "<rootDir>/packages/core/src/mk-gql.ts"
   }
 }

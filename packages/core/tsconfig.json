@@ -16,13 +16,6 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
      "emitDecoratorMetadata": true,
-    "paths": {
-      "mk-gql": ["./packages/core/src/mk-gql.ts"]
-    }
   },
-  "include": [
-    "tests/**/*.test.ts",
-    "packages/generator/**/*.ts"
-  ],
-  "files": ["./packages/core/src/mk-gql.ts"]
+  "files": ["./src/mk-gql.ts"]
 }

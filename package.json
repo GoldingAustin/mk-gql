@@ -1,9 +1,12 @@
 {
   "name": "mk-gql",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Bindings for mobx-keystone and GraphQL",
   "authors": [
     "Austin Golding"
+  ],
+  "workspaces": [
+    "packages/**"
   ],
   "keywords": [
     "mobx-keystone",
@@ -22,7 +25,7 @@
   },
   "license": "MIT",
   "main": "dist/mk-gql.js",
-  "source": "src/mk-gql.ts",
+  "source": "core/src/mk-gql.ts",
   "umd:main": "dist/mk-gql.umd.js",
   "module": "dist/mk-gql.module.js",
   "jsnext:main": "dist/mk-gql.module.js",
@@ -34,9 +37,9 @@
     "generator"
   ],
   "scripts": {
-    "test": "jest test && cd examples/2-scaffolding && yarn && yarn start",
+    "test": "jest test",
     "watch": "jest test --watch",
-    "build": "microbundle --compress --external mobx,mobx-keystone,graphql,graphql-request",
+    "build": "microbundle -i ./packages/core/src/mk-gql.ts --tsconfig ./tsconfig.build.json --compress --external mobx,mobx-keystone,graphql,graphql-request && yarn workspace generator run build",
     "format": "prettier --write '**/*'"
   },
   "husky": {
@@ -45,40 +48,40 @@
     }
   },
   "dependencies": {
-    "camelcase": "^6.0.0",
+    "camelcase": "^6.3.0",
     "fast-json-stable-stringify": "^2.1.0",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.9",
-    "@babel/plugin-proposal-class-properties": "^7.12.1",
-    "@babel/plugin-proposal-decorators": "^7.12.1",
-    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
-    "@babel/preset-env": "^7.12.7",
-    "@babel/preset-typescript": "^7.12.7",
-    "@babel/register": "^7.12.1",
-    "@types/jest": "^26.0.14",
+    "@babel/core": "7.12.10",
+    "@babel/plugin-proposal-class-properties": "7.12.13",
+    "@babel/plugin-proposal-decorators": "7.12.13",
+    "@babel/plugin-transform-modules-commonjs": "7.12.13",
+    "@babel/preset-env": "7.12.17",
+    "@babel/preset-typescript": "7.12.17",
+    "@babel/register": "7.12.13",
+    "@types/graphql": "^14.5.0",
+    "@types/jest": "^27.5.1",
     "@types/pluralize": "^0.0.29",
     "@types/throttle-debounce": "^2.1.0",
     "@types/ws": "7.4.0",
     "arg": "^4.1.3",
-    "cosmiconfig": "^7.0.0",
+    "cosmiconfig": "^7.0.1",
     "escape-string-regexp": "^4.0.0",
     "graphql": "^14",
-    "graphql-request": "^3.7.0",
-    "graphql-tag": "^2.11.0",
-    "husky": "^4.3.0",
-    "jest": "^26.4.2",
-    "microbundle": "^0.14.1",
-    "mobx": "^6.3.6",
-    "mobx-keystone": "^0.64.0",
-    "prettier": "^2.1.2",
-    "pretty-quick": "^3.0.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "relative-deps": "^1.0.4",
-    "tslib": "^2.2.0",
-    "typescript": "^4.4.4"
+    "graphql-request": "^4.2.0",
+    "graphql-tag": "^2.12.6",
+    "husky": "^8.0.1",
+    "jest": "^28.1.0",
+    "microbundle": "^0.15.0",
+    "mobx": "^6.6.0",
+    "mobx-keystone": "^0.68.6",
+    "prettier": "^2.6.2",
+    "pretty-quick": "^3.1.3",
+    "relative-deps": "^1.0.7",
+    "ts-jest": "^28.0.3",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.2"
   },
   "peerDependenciesMeta": {
     "graphql": {
@@ -98,6 +101,7 @@
     "graphql": "^14",
     "graphql-request": "^3",
     "mobx": "^4.0.0 || ^5.0.0 || ^6.0.0",
-    "mobx-keystone": "^0.55.0"
-  }
+    "mobx-keystone": "^0"
+  },
+  "packageManager": "yarn@3.2.1"
 }
