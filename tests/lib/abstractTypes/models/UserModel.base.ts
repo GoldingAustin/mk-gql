@@ -1,6 +1,7 @@
 /* This is a mk-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 
 import { types, prop, tProp, Model, Ref, idProp } from "mobx-keystone"
 import { QueryBuilder } from "mk-gql"
@@ -14,7 +15,7 @@ import { QueryBuilder } from "mk-gql"
  */
 export class UserModelBase extends Model({
     __typename: tProp("User"),
-        id:prop<string | number>().withSetter(),
+    id:prop<string | number>().withSetter(),
     name:prop<string>().withSetter(),
     avatar:prop<string>().withSetter(),
   }) {

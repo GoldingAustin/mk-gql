@@ -1,6 +1,6 @@
 {
   "name": "mk-gql",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Bindings for mobx-keystone and GraphQL",
   "authors": [
     "Austin Golding"

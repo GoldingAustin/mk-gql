@@ -1,6 +1,7 @@
 /* This is a mk-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 
 import { QueryBuilder } from "mk-gql"
 import { BookModel, BookModelSelector, bookModelPrimitives } from "./BookModel"

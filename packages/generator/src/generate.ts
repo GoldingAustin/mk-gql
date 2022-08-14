@@ -52,7 +52,7 @@ function generate(
   let origRootTypes: string[] = []
 
   const header = `/* This is a mk-gql generated file, don't modify it manually */
-/* eslint-disable */${format === "ts" ? "\n/* tslint:disable */" : ""}`
+/* eslint-disable */${format === "ts" ? "\n/* tslint:disable */\n// @ts-nocheck" : ""}`
   const importPostFix = format === "mjs" ? ".mjs" : ""
 
   // For a model called TodoModel the TS type would originally be called TodoModelType.
@@ -597,7 +597,9 @@ ${rootTypes
   }
 
   function generateMergeHelper() {
-    const modelFile = `import { toJS } from 'mobx';
+    const modelFile = `
+${header}
+import { toJS } from 'mobx';
 import { detach, Model, model, modelAction, findParent, applySnapshot, getSnapshot } from 'mobx-keystone';
 import { RootStore } from './RootStore';
 import { rootRefs } from './RootStore.base';

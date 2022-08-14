@@ -1,6 +1,7 @@
 /* This is a mk-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 
 export * from "./MovieModel"
 export * from "./BookModel"
@@ -11,4 +12,4 @@ export * from "./UserModel"
 export * from "./OrganizationModel"
 export * from "./RepoModel"
 export * from "./RootStore"
-export * from "./RootStore.base";
+export * from "./RootStore.base"

@@ -1,6 +1,7 @@
 /* This is a mk-gql generated file, don't modify it manually */
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 import type { ObservableMap } from "mobx"
 import { types, prop, tProp, Ref, Model, modelAction, objectMap, detach, model, findParent, customRef, ExtendedModel, AbstractModelClass } from "mobx-keystone"
 import { MKGQLStore, createMKGQLStore, QueryOptions } from "mk-gql"
