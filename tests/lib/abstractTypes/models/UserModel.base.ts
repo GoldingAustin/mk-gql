@@ -15,7 +15,7 @@ import { QueryBuilder } from "mk-gql"
  */
 export class UserModelBase extends Model({
     __typename: tProp("User"),
-    id:prop<string | number>().withSetter(),
+        id:prop<string | number>().withSetter(),
     name:prop<string>().withSetter(),
     avatar:prop<string>().withSetter(),
   }) {

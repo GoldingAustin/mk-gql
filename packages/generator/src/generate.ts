@@ -645,7 +645,7 @@ export class MergeHelper extends Model({}) {
       }
       return items;
     }
-    let { __typename, id, ...rest } = data;
+    let { __typename, id } = data;
 
     // convert values deeply first to mobx-keystone objects as much as possible
     let snapshot: any;

@@ -13,7 +13,8 @@ export type Store = MKGQLStore & { merge: (data: any, del: boolean) => any }
 @model("MKGQLStore")
 export class MKGQLStore extends Model({
   __queryCache: prop(() => objectMap<string>()),
-  isAttached: prop(false)
+  isAttached: prop(false),
+  enableCache: prop<boolean>(true)
 }) {
   ssr: boolean = false
   __promises: Map<string, Promise<unknown>> = new Map()

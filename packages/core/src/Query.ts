@@ -45,7 +45,7 @@ export class Query<T = unknown> implements PromiseLike<T> {
     this.query = typeof query === "string" ? query : print(query)
     this.queryKey = this.query + stringify(variables)
 
-    let fetchPolicy = options.fetchPolicy || "cache-and-network"
+    let fetchPolicy: FetchPolicy = !this.store.enableCache ? "no-cache" : options.fetchPolicy || "cache-and-network"
     if (this.store.ssr && !this.options.noSsr && (isServer || !store.__afterInit)) {
       fetchPolicy = "cache-first"
     }
@@ -117,25 +117,18 @@ export class Query<T = unknown> implements PromiseLike<T> {
     }
     if (promise) {
       if (this.store.middleware) this.store.middleware(promise)
-      promise = promise
-        .then((data: any) => {
-          // cache query and response
-          if (this.fetchPolicy !== "no-cache") {
-            this.store.__cacheResponse(this.queryKey, this.store.deflate(data))
-          }
-          return this.store.merge(data, this.del)
-        })
-        .catch((error) => {
-          this.loading = false
-          this.error = error
-        })
       this.promise = promise
-      promise
         .then(
           action((data: any) => {
+            // cache query and response
+            if (this.fetchPolicy !== "no-cache") {
+              this.store.__cacheResponse(this.queryKey, this.store.deflate(data))
+            }
+            const mergedData = this.store.merge(data, this.del)
             this.loading = false
             this.error = false
-            this.data = observable(data)
+            this.data = mergedData
+            return mergedData
           }),
           action((error: any) => {
             this.loading = false
