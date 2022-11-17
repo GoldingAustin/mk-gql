@@ -40,7 +40,6 @@ describe("Abstract types tests", () => {
       validateQuery(query.toString())
 
       return {
-        data: {
           search: {
             __typename: "SearchResult",
             inputQuery: "noot",
@@ -57,7 +56,6 @@ describe("Abstract types tests", () => {
               }
             ]
           }
-        }
       }
     }
     mockResponses = [mockSearchQuery]
@@ -65,8 +63,8 @@ describe("Abstract types tests", () => {
     const { searchResultModelPrimitives, searchItemModelPrimitives } = models
     const searchResults = await store.querySearch(
       { text: "noot" },
-      searchResultModelPrimitives.items(searchItemModelPrimitives).toString()
-    )
+      searchResultModelPrimitives.items(() => searchItemModelPrimitives).toString()
+    );
     expect(searchResults.search.inputQuery).toBe("noot")
     const items = searchResults.search.items
     expect(items).toHaveLength(2)
@@ -83,7 +81,6 @@ describe("Abstract types tests", () => {
       validateQuery(query.toString())
 
       return {
-        data: {
           getAllRepos: [
             {
               __typename: "Repo",
@@ -104,7 +101,6 @@ describe("Abstract types tests", () => {
               }
             }
           ]
-        }
       }
     }
     mockResponses = [mockRepoQuery]

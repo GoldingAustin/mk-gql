@@ -3,7 +3,7 @@ import stringify from "fast-json-stable-stringify"
 import { print } from "graphql"
 
 import { action, observable } from "mobx"
-import { MKGQLStore, Store } from "./MKGQLStore"
+import { Store } from "./MKGQLStore"
 
 export type CaseHandlers<T, R> = {
   loading(): R
@@ -133,11 +133,13 @@ export class Query<T = unknown> implements PromiseLike<T> {
           action((error: any) => {
             this.loading = false
             this.error = error
+            return error
           })
         )
         .catch((error) => {
           this.loading = false
           this.error = error
+          return error
         })
     } else {
       this.loading = false
