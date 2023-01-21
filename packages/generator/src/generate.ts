@@ -195,7 +195,7 @@ export const ${name}${enumPostfix}Type = ${handleEnumTypeCore(type)}
     const { name, origName } = type
     const flowerName = toFirstLower(name)
 
-    const entryFile = `${ifTS('import { ExtendedModel, model } from "mobx-keystone"\n')}\
+    const entryFile = `${ifTS('import { ExtendedModel, model, modelClass } from "mobx-keystone"\n')}\
 import { ${name}ModelBase } from "./${name}Model.base${importPostFix}"
 
 ${
@@ -209,7 +209,10 @@ export { selectFrom${name}, ${flowerName}ModelPrimitives, ${name}ModelSelector }
  * ${name}Model${optPrefix("\n *\n * ", sanitizeComment(type.description))}
  */
 @model('${name}')
-export class ${name}Model extends ExtendedModel(${name}ModelBase, {}) {}
+export class ${name}Model extends ExtendedModel(() => ({
+  baseModel: modelClass<${name}ModelBase>(${name}ModelBase),
+  props: {},
+})) {}
 `
 
     const useTypedRefs = refs.length > 0 && format === "ts"
@@ -496,10 +499,13 @@ ${generateFragments(name, primitiveFields, nonPrimitiveFields)}
   function generateRootStore() {
     toExport.push("RootStore")
 
-    const entryFile = `${ifTS('import { ExtendedModel, model } from "mobx-keystone"\n')}\
+    const entryFile = `${ifTS('import { ExtendedModel, model, modelClass } from "mobx-keystone"\n')}\
 import { RootStoreBase } from "./RootStore.base${importPostFix}"
 @model('RootStore')
-export class RootStore extends ExtendedModel(RootStoreBase, {}) {}
+export class RootStore extends ExtendedModel(() => ({
+    baseModel: modelClass<RootStoreBase>(RootStoreBase),
+    props: {},
+})) {}
 `
 
     const modelFile = `\

@@ -52,7 +52,7 @@ export abstract class QueryBuilder {
     }
   }
 
-  public toString(removeFields?: string[]) {
+  public toString() {
     if (this.__query) return this.__query
     return ""
   }

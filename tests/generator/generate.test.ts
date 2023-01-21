@@ -72,7 +72,10 @@ type query_root {
     expect(
       hasFileContent(
         findFile(output, "PossiblyEmptyBoxModel"),
-        "export class PossiblyEmptyBoxModel extends ExtendedModel(PossiblyEmptyBoxModelBase, {}) {}"
+          'export class PossiblyEmptyBoxModel extends ExtendedModel(() => ({\n' +
+          '  baseModel: modelClass<PossiblyEmptyBoxModelBase>(PossiblyEmptyBoxModelBase),\n' +
+          '  props: {},\n' +
+          '})) {}\n'
       )
     ).toBeTruthy()
 
